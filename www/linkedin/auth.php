@@ -1,20 +1,142 @@
-<?php 
-// Fill the keys and secrets you retrieved after registering your app
-$oauth = new OAuth("75p5ptqc5060jj", "GJIsoTietQCigBWb");
-$oauth->setToken("d7a9bd69-440f-8519-25e897c83452", "82c5b3f9-b59a-49ca-bbd5-fa3a2cb9ff1d");
+<?php
+// Change these
+define('API_KEY',      '75p5ptqc5060jj'                                          );
+define('API_SECRET',   'GJIsoTietQCigBWb'                                       );
+// You must pre-register your redirect_uri at https://www.linkedin.com/secure/developer
+define('REDIRECT_URI', 'https://' . $_SERVER['SERVER_NAME'] . $_SERVER['SCRIPT_NAME']);
+define('SCOPE',        'r_basicprofile r_emailaddress'                              );
+
+echo $REDIRECT_URI;
+echo '<br>';
  
-$params = array();
-$headers = array();
-$method = OAUTH_HTTP_METHOD_GET;
-  
-// Specify LinkedIn API endpoint to retrieve your own profile
-$url = "https://api.linkedin.com/v1/people/~";
+// You'll probably use a database
+session_name('linkedin');
+session_start();
  
-// By default, the LinkedIn API responses are in XML format. If you prefer JSON, simply specify the format in your call
-// $url = "https://api.linkedin.com/v1/people/~?format=json";
+echo 'before OAuth <br>';
+
+// OAuth 2 Control Flow
+if (isset($_GET['error'])) {
+    // LinkedIn returned an error
+    print $_GET['error'] . ': ' . $_GET['error_description'];
+    exit;
+} elseif (isset($_GET['code'])) {
+    // User authorized your application
+    if ($_SESSION['state'] == $_GET['state']) {
+        // Get token so you can make API calls
+        getAccessToken();
+    } else {
+        // CSRF attack? Or did you mix up your states?
+        exit;
+    }
+} else { 
+    if ((empty($_SESSION['expires_at'])) || (time() > $_SESSION['expires_at'])) {
+        // Token has expired, clear the state
+        $_SESSION = array();
+    }
+    if (empty($_SESSION['access_token'])) {
+        // Start authorization process
+        getAuthorizationCode();
+    }
+}
  
-// Make call to LinkedIn to retrieve your own profile
-$oauth->fetch($url, $params, $method, $headers);
-echo 'Test';  
-echo $oauth->getLastResponse();
-?>
+echo 'before fetch <br>';
+
+// Congratulations! You have a valid token. Now fetch your profile 
+$user = fetch('GET', '/v1/people/~:(firstName,lastName)');
+
+echo 'after fetch <br>';
+
+print "Hello $user->firstName $user->lastName.";
+exit;
+ 
+function getAuthorizationCode() {
+    $params = array(
+        'response_type' => 'code',
+        'client_id' => API_KEY,
+        'scope' => SCOPE,
+        'state' => uniqid('', true), // unique long string
+        'redirect_uri' => REDIRECT_URI,
+    );
+ 
+    // Authentication request
+    $url = 'https://www.linkedin.com/uas/oauth2/authorization?' . http_build_query($params);
+     
+    // Needed to identify request when it returns to us
+    $_SESSION['state'] = $params['state'];
+ 
+    // Redirect user to authenticate
+    header("Location: $url");
+    exit;
+}
+     
+function getAccessToken() {
+    $params = array(
+        'grant_type' => 'authorization_code',
+        'client_id' => API_KEY,
+        'client_secret' => API_SECRET,
+        'code' => $_GET['code'],
+        'redirect_uri' => REDIRECT_URI,
+    );
+     
+    // Access Token request
+    $url = 'https://www.linkedin.com/uas/oauth2/accessToken?' . http_build_query($params);
+     
+    // Tell streams to make a POST request
+    $context = stream_context_create(
+        array('http' => 
+            array('method' => 'POST',
+            )
+        )
+    );
+ 
+    // Retrieve access token information
+    $response = file_get_contents($url, false, $context);
+ 
+    // Native PHP object, please
+    $token = json_decode($response);
+ 
+    // Store access token and expiration time
+    $_SESSION['access_token'] = $token->access_token; // guard this! 
+    $_SESSION['expires_in']   = $token->expires_in; // relative time (in seconds)
+    $_SESSION['expires_at']   = time() + $_SESSION['expires_in']; // absolute time
+     
+    return true;
+}
+ 
+function fetch($method, $resource, $body = '') {
+    print $_SESSION['access_token'];
+ 
+    $headers = array(
+        'Authorization' => 'Bearer ' . $_SESSION['access_token'],
+#        'x-li-format' => 'json', // Comment out to use XML
+    );
+ 
+    $params = array(
+//      'param1' => 'value1',
+    );
+     
+    // Need to use HTTPS
+    $url = 'https://api.linkedin.com' . $resource;
+ 
+    // Append query parameters (if there are any)
+    if (count($params)) { $url .= '?' . http_build_query($params); } 
+ 
+    // Tell streams to make a (GET, POST, PUT, or DELETE) request
+    // And use OAuth 2 access token as Authorization
+    $context = stream_context_create(
+        array('http' => 
+            array('method' => $method,
+                  'header' => $headers,
+            )
+        )
+    );
+ 
+ 
+    // Hocus Pocus
+    $response = file_get_contents($url, false, $context);
+ 
+    // Native PHP object, please
+#    return json_decode($response);
+     return $response;
+}

@@ -25,7 +25,7 @@
 	/*  API permission scopes
 	 *  Separate scopes with a space, not with +
 	 */
-	$client->scope = 'r_fullprofile r_emailaddress';
+	$client->scope = 'r_fullprofile r_emailaddress r_network r_contactinfo rw_nus rw_groups';
 
 	if(strlen($client->client_id) == 0
 	|| strlen($client->client_secret) == 0)
@@ -44,7 +44,7 @@
 				$success = $client->CallAPI(
 					'http://api.linkedin.com/v1/people/~', 
 					'GET', array(
-						'format'=>'json'
+						'format'=>'xml'
 					), array('FailOnAccessError'=>true), $user);
 			}
 		}
