@@ -7,7 +7,12 @@
 <br>
 <?php
 //  Make the connection
-$con = mysqli_connect("localhost", "from_web", ')M(N*B&V', "proj490");
+$servername = "localhost";
+$username = "from_web";
+$password = "Z!s2D#r4%";
+$dbname = "490_db";
+
+$con = mysqli_connect( $servername, $username, $password, $dbname );
 
 if (!$con){
     die('Error (' . mysqli_connect_errno() . ')' . mysqli_connect_error());
@@ -20,8 +25,13 @@ $phone1 = $_POST["phone1"];
 $phone2 = $_POST["phone2"];    
 $twitr = $_POST["twitr"];    
 
-if(mysqli_query($con, "INSERT INTO CONNECTIONS (f_name, l_name, phone1, phone2, email) VALUES ('$f_name', '$l_name', '$phone1', '$phone2', '$email')")===TRUE){
+$sql = "INSERT INTO Network (f_name, l_name, phone1, phone2, email) VALUES ('$f_name', '$l_name', '$phone1', '$phone2', '$email')";
+
+if (mysqli_query($con, $sql)) {
   echo "Contact info stored in database.<br>";
+}else{
+  echo "Database update failed.";
+  echo "Error: " . mysqli_error($con);
 }
 mysqli_close($con);
 
