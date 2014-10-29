@@ -1,42 +1,58 @@
+<?php include '../cgi-bin/linkedin_auth.php';?>
 <!DOCTYPE html>
 <html>
-<head>
-<script>
-  function getToken(){
-    var httpReq=new XMLhttpRequest();
-    httpReq.onreadystatechange=function(){
-      if (httpReq.readyState==4 && httpReq.status==200){
-        var code=$_GET['code'];
-        httpReq.open("GET", "href=\"https://www.linkedin.com/uas/oauth2/accessToken?grant_type=authorization_code&code=$code&redirect_uri=https://mbourn.com/authorized/authorized.php&client_id=75p5ptqc5060jj&client_secret=GJIsoTietQCigBWb", true);
-        httpReq.send();
-        document.getElementById("tokenResponse").innerHTML=httpReq.responseText;
-      }
-    }
-  }
-</script>
-</head>
+<head></head>
 <body>
-<?php
-if ($_GET['state'] != '33555d7e98ed0cc08105ef69345daeae') {
-  echo "<h1>Silly h@x0r</h1>";
-
-}elseif ($_GET['error_description'] == 'the user denied your request') {
-  echo "<h1>It hurts me that you don't trust my app.  I think I shall go have a cry.</h1>";
-
-}else{
-  $code=$_GET['code'];
-  echo " <h1>You've been authorized, bru!</h1> <br><br>";
-  echo " <div id='tokenResponse'>The JSON token goes here<div/><br><br>";
-  if ($tokenResponse){
-    echo "got the token";
-  }else{
-    echo "it didn't work";
-  }
-
-  echo "<h3>Code=</h3> " . $_GET['code'] . "<br><h3>Hash=</h3> " . $_GET['state'];
-  echo "<a href=\"https://www.linkedin.com/uas/oauth2/accessToken?grant_type=authorization_code&code=$code&redirect_uri=https://mbourn.com/authorized/authorized.php&client_id=75p5ptqc5060jj&client_secret=GJIsoTietQCigBWb\"><br><br>Get you a token!</a>";
-}?>
-
+ <p>
+<a href="https://apilinkedin.com/v1/people/~?oauth2_access_token=AQXYCYhofl1BZnlKO9nk2NDiJo6RLXNE-jBIAflv8heoXwtqX_271-ULtMWWd4qNIuQ-fisoCjCm56HBRruVeVj6MsdL-hzl9lcaU0ggBqgOcuk-jtVTgl28eDhO0KBiwInw9XhBu-vNxgOmmbX1sU7dnBv1etutwZDstfYpmLVuqhQhbwQ">Do it the hard way</a>
+</p>
 </body>
 </html>
+
+
+<?php 
+/*function fetch($method, $resource, $body = '') {
+echo "<h3>Fetching</h3><br>";
+    print $_SESSION['access_token'];
+    echo "<br>";
+    print $_SESSION['expires_in'];
+
+    $headers = array(
+        'Authorization' => 'Bearer ' . $_SESSION['access_token'],
+        'x-li-format' => 'json', // Comment out to use XML
+    );
+echo "<br><br>" . $headers . "<br><br>"; 
+    $params = array(
+//      'param1' => 'value1',
+    );
+     
+    // Need to use HTTPS
+    $url = 'https://api.linkedin.com' . $resource;
+ 
+    // Append query parameters (if there are any)
+    if (count($params)) { $url .= '?' . http_build_query($params); } 
+ 
+    // Tell streams to make a (GET, POST, PUT, or DELETE) request
+    // And use OAuth 2 access token as Authorization
+    $context = stream_context_create(
+        array('http' => 
+            array('method' => $method,
+                  'header' => $headers,
+            )
+        )
+    );
+ 
+ 
+    // Hocus Pocus
+    $response = file_get_contents($url, false, $context);
+ 
+    // Native PHP object, please
+if ( $response ){
+echo "<br><br>The server responded with: " . json_decode($response) . "<br>";
+}else{
+  echo "<br><br>Something went wrong.<br><br>";
+}
+    return json_decode($response);
+}*/
+?>
 
