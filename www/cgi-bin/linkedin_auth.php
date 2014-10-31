@@ -111,38 +111,78 @@ echo "<p>URL is: " . $url . "</p>";
      
     return true;
 }
+
+function fetch($method, $resource, $body = '') {
+echo "<p><b>Fetching Profile</b></p>";
+    print $_SESSION['access_token'];
  
+    $opts = array(
+        'http'=>array(
+            'method' => $method,
+            'header' => "Authorization: Bearer " . $_SESSION['access_token'] . "\r\n" . "x-li-format: json\r\n"
+        )
+    );
+ 
+    // Need to use HTTPS
+    $url = 'https://api.linkedin.com' . $resource;
+ 
+    // Append query parameters (if there are any)
+    if (count($params)) { $url .= '?' . http_build_query($params); }
+ 
+    // Tell streams to make a (GET, POST, PUT, or DELETE) request
+    // And use OAuth 2 access token as Authorization
+    $context = stream_context_create($opts);
+ 
+    // Hocus Pocus
+    $response = file_get_contents($url, false, $context);
+
+if ( $response === false ){
+  echo "<p>Something went wrong, file_get_content() returned FALSE</p>";
+}else{
+  print $response;
+
+    // Native PHP object, please
+    return json_decode($response);
+}
+}
+
+/* 
 function fetch($method, $resource, $body = '') {
 echo "<p><b>Fetching</b></p>";
     print $_SESSION['access_token'];
     echo "<br>";
     print $_SESSION['expires_in'];
 
-    $headers = array(
-        'Authorization' => 'Bearer ' . $_SESSION['access_token'],
-        'x-li-format' => 'json', // Comment out to use XML
-    );
+    $headers = "Authorization: Bearer " . $_SESSION["access_token"] . "\r\n" . "x-li-format: json\r\n"; // Comment out to use XML
+
 echo "<p><b>The headers are: </b></p>"; 
 print_r( $headers );
 echo "<br>";
+
     $params = array(
-//      'param1' => 'value1',
+    // 'param1' => 'value1',
     );
      
     // Need to use HTTPS
     $url = 'https://api.linkedin.com' . $resource;
 echo "<p><b>URL: " . $url . "</b></p>"; 
+
     // Append query parameters (if there are any)
     if (count($params)) { $url .= '?' . http_build_query($params); } 
  
     // Tell streams to make a (GET, POST, PUT, or DELETE) request
     // And use OAuth 2 access token as Authorization
+/*    $opts = array(
+      'http'=>array(
+        'method'=>"GET",
+        'header'=>"Authorization: Bearer " . $_SESSION["access_token"] . "\r\n" . "x-liformat: json\r\n"));
+
     $context = stream_context_create(
-        array('http' => 
-            array('method' => $method,
-                  'header' => $headers,
-            )
+      array("http"=>
+        array("method" => "GET",
+          "header" => $headers,
         )
+      )
     );
 
  
@@ -202,4 +242,4 @@ function FriendlyErrorType($type)
 echo "<p><b>The server responded with:</b> " . json_decode($response) . "</p>";
 }
     return json_decode($response);
-}
+}*/

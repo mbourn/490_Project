@@ -1,11 +1,8 @@
-<?php include '../cgi-bin/linkedin_auth.php';?>
+<?php include '../cgi-bin/auth.php';?>
 <!DOCTYPE html>
 <html>
 <head></head>
 <body>
- <p>
-<a href="https://apilinkedin.com/v1/people/~?oauth2_access_token=AQXYCYhofl1BZnlKO9nk2NDiJo6RLXNE-jBIAflv8heoXwtqX_271-ULtMWWd4qNIuQ-fisoCjCm56HBRruVeVj6MsdL-hzl9lcaU0ggBqgOcuk-jtVTgl28eDhO0KBiwInw9XhBu-vNxgOmmbX1sU7dnBv1etutwZDstfYpmLVuqhQhbwQ">Do it the hard way</a>
-</p>
 </body>
 </html>
 

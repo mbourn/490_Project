@@ -6,7 +6,7 @@
 <body>
 <h1> This is to test db connection and interactions </h1>
 <br><hr><br>
-
+<h3>Network Table</h3>
 <?php
 //  Make the connection
 $con = mysqli_connect("localhost", "from_web", 'Z!s2D#r4%', "490_db");
@@ -38,6 +38,25 @@ echo "<tr><td>$f_name</td><td>$l_name</td><td>$email</td><td>$phone1</td><td>$ph
 ?>
 </table>
 <br><hr><br>
+<h3>Users Table</h3>
+<table style='border: black 1px;'>
+<tr>
+  <th>User ID</th><th>First Name</th><th>Last Name</th>
+</tr>
+
+<?php
+$result = mysqli_query($con, "SELECT * FROM Users");
+
+while($row = mysqli_fetch_array($result)){
+  $u_id=$row['u_id'];
+  $f_name=$row['f_name'];
+  $l_name=$row['l_name'];
+  echo "<tr><td>$u_id</td><td>$f_name</td><td>$l_name</td></tr>";
+}
+?>
+</table>
+<br><hr><br>
+
 <form action='testdb.php'>
 <input type='submit' value='Add another entry'>
 </form>
