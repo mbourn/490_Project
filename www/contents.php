@@ -17,7 +17,7 @@ if (!$con){
 
 <table style='border: black 1px;'>
 <tr>
-  <th>First Name</th><th>Last Name</th><th>Email</th><th>Phone</th><th>Phone</th><th>Address</th><th>Twitter Handle</th><th>Instant Messanger</th>
+  <th>First Name</th><th>Last Name</th><th>URL</th><th>Email</th><th>Phone</th><th>Phone</th><th>Address</th><th>Twitter Handle</th><th>Instant Messanger</th>
 </tr>
 
 <?php
@@ -26,6 +26,7 @@ $result = mysqli_query($con, "SELECT * FROM Network");
 while($row = mysqli_fetch_array($result)){
 $f_name=$row['f_name'];
 $l_name=$row['l_name'];
+$l_url=$row['l_url'];
 $email=$row['email'];
 $addr=$row['addr'];
 $phone1=$row['phone1'];
@@ -33,7 +34,7 @@ $phone2=$row['phone2'];
 $twitr=$row['twitr'];
 $im=$row['i_m'];
 
-echo "<tr><td>$f_name</td><td>$l_name</td><td>$email</td><td>$phone1</td><td>$phone2</td><td>$addr</td><td>$twitr</td><td>$im</td></tr>";   
+echo "<tr><td>$f_name</td><td>$l_name</td><td>$l_url</td><td>$email</td><td>$phone1</td><td>$phone2</td><td>$addr</td><td>$twitr</td><td>$im</td></tr>";   
 }
 ?>
 </table>

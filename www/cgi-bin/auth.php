@@ -41,19 +41,18 @@ if (isset($_GET['error'])) {
  
 // Congratulations! You have a valid token. Now fetch your profile 
 $user = fetch('GET', '/v1/people/~');
-$network = fetch('GET', '/v1/people/~/connections');
-//$network = fetch('GET', '/v1/people/~/connections:(first-name,last-name,site-standard-profile-request)');
+
+//$network = fetch('GET', '/v1/people/~/connections');
+$network = fetch('GET', '/v1/people/~/connections:(first-name,last-name,site-standard-profile-request)');
+
+
 print "Hello $user->firstName $user->lastName.";
+echo "<br>";
+echo $network->values[0]->firstName;
+
 
 load_user($user);
-
-echo "<br><br>";
-//var_dump(get_object_vars($user));
-echo "<br><br>";
-//var_dump(get_object_vars($network));
-
-//var_dump(get_object_vars($network));
-//var_dump($user);
+load_network($network);
 exit;
  
 function getAuthorizationCode() {
@@ -167,6 +166,47 @@ echo "<p><b>Fname: " . $fname . " Lname: " . $lname . "<br>Query: " . $sql . "</
   }else{
   	echo "Error: " . $sql . "<br>" . mysqli_error($conn);
   }
-
+  mysqli_close($conn);
 
 }
+
+
+function load_network( $network ){
+
+
+echo "<p><b>Loading the your network into the database ...</b></p>";
+//var_dump($network);
+//$fname = $network->values[0]->siteStandardProfileRequest->url;
+//echo $fname;
+
+  $servername = "localhost";
+  $username = "from_web";
+  $password = 'Z!s2D#r4%';
+  $dbname = "490_db";
+
+  $conn = new mysqli($servername, $username, $password, $dbname);
+  if( $conn->connect_error ){
+    die("Connection failed: " . $conn->connect_error);
+  }else{
+    echo "Connected successfully ...<br>";
+  }                
+
+
+
+    for( $i=0; $i<count($network->values); $i++){ 
+    $fname = $network->values[$i]->firstName;
+    $lname = $network->values[$i]->lastName;
+    $url = $network->values[$i]->siteStandardProfileRequest->url;
+    $sql = "INSERT INTO Network (f_name, l_name, l_url) VALUES('$fname', '$lname', '$url')";
+
+echo "<p>First: " . $fname . " Last: " . $lname . " URLL " . $url . "</p>";
+
+    if( $conn->query($sql) === TRUE){
+      echo "<p>Your network has been added to the database</p>";
+    }else{
+      echo "Error: " . $sql . "<br>" . mysqli_error($conn);
+    }
+  }
+  mysqli_close($conn);
+}
+
