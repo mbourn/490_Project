@@ -1,61 +1,63 @@
 <?php
-// Change these
-define('API_KEY',      '75p5ptqc5060jj'                          );
-define('API_SECRET',   'GJIsoTietQCigBWb'                        );
+function start(){
+  // Change these
+  define('API_KEY',      '75p5ptqc5060jj'                          );
+  define('API_SECRET',   'GJIsoTietQCigBWb'                        );
 
-// You must pre-register your redirect_uri at https://www.linkedin.com/secure/developer
-define('REDIRECT_URI', 'https://mbourn.com/authorized/authorized.php');
-define('SCOPE',        'r_fullprofile r_emailaddress r_network'                              );
+  // You must pre-register your redirect_uri at https://www.linkedin.com/secure/developer
+  define('REDIRECT_URI', 'https://mbourn.com/authorized/authorized.php');
+  define('SCOPE',        'r_fullprofile r_emailaddress r_network');
 
-
-//echo "<p><b>" $_SERVER['SERVER_NAME'] . " " . $_SERVER['SCRIPT_NAME'] . "</b></p>";
-
-// You'll probably use a database
-session_name('linkedin');
-session_start();
+  // You'll probably use a database
+  session_name('linkedin');
+  session_start();
  
-// OAuth 2 Control Flow
-if (isset($_GET['error'])) {
+  // OAuth 2 Control Flow
+  if (isset($_GET['error'])) {
     // LinkedIn returned an error
     print $_GET['error'] . ': ' . $_GET['error_description'];
     exit;
-} elseif (isset($_GET['code'])) {
+  } elseif (isset($_GET['code'])) {
     // User authorized your application
     if ($_SESSION['state'] == $_GET['state']) {
         // Get token so you can make API calls
         getAccessToken();
+        echo "<p><b>Call Token</b></p>";
     } else {
         // CSRF attack? Or did you mix up your states?
         exit;
     }
-} else { 
-    if ((empty($_SESSION['expires_at'])) || (time() > $_SESSION['expires_at'])) {
+  } else { 
+      if ((empty($_SESSION['expires_at'])) || (time() > $_SESSION['expires_at'])) {
         // Token has expired, clear the state
         $_SESSION = array();
-    }
-    if (empty($_SESSION['access_token'])) {
+      }
+      if (empty($_SESSION['access_token'])) {
         // Start authorization process
         getAuthorizationCode();
-    }
+        echo "<p><b>Call Auth</b></p>";
+      }
+  }
+ 
+  // Congratulations! You have a valid token. Now fetch your profile 
+  $user = fetch('GET', '/v1/people/~');
+
+  // Get the user's network
+  $network = fetch('GET', '/v1/people/~/connections:(first-name,last-name,site-standard-profile-request)');
+
+  print "Hello $user->firstName $user->lastName.";
+
+  // Add the user to the Users table, return the user's primary key
+  $last_id = load_user($user);
+
+  // Add the user's network to the Network table with the user's primary
+  // key as the foreign key.
+  load_network($network, $last_id);
+  exit;
 }
- 
-// Congratulations! You have a valid token. Now fetch your profile 
-$user = fetch('GET', '/v1/people/~');
 
-//$network = fetch('GET', '/v1/people/~/connections');
-$network = fetch('GET', '/v1/people/~/connections:(first-name,last-name,site-standard-profile-request)');
-
-
-print "Hello $user->firstName $user->lastName.";
-echo "<br>";
-echo $network->values[0]->firstName;
-
-
-load_user($user);
-load_network($network);
-exit;
- 
 function getAuthorizationCode() {
+echo "<p><b>Get Auth</b></p>";
     $params = array(
         'response_type' => 'code',
         'client_id' => API_KEY,
@@ -76,6 +78,7 @@ function getAuthorizationCode() {
 }
      
 function getAccessToken() {
+echo "<p><b>Get Token</b></p>";
     $params = array(
         'grant_type' => 'authorization_code',
         'client_id' => API_KEY,
@@ -110,7 +113,8 @@ function getAccessToken() {
 }
  
 function fetch($method, $resource, $body = '') {
-    print $_SESSION['access_token'];
+echo "<p>Fetching</p>";
+//  print $_SESSION['access_token'];
  
     $opts = array(
         'http'=>array(
@@ -131,15 +135,14 @@ function fetch($method, $resource, $body = '') {
  
     // Hocus Pocus
     $response = file_get_contents($url, false, $context);
- 
     // Native PHP object, please
     return json_decode($response);
 }
 
-
+// This function takes the user php object returned from LinkedIn and adds
+// the relevent values to the database 
 function load_user($user){ 
   echo "<p><b>Loading user</b></p>";
-  var_dump($user);
   $servername = "localhost";
   $username = "from_web";
   $password = 'Z!s2D#r4%';
@@ -154,31 +157,28 @@ function load_user($user){
   }
   
   // Load the contents of the passed PHP object into the database
-  echo "Create vars...<br>";
   $fname = $user->firstName;
   $lname = $user->lastName;
   $sql = "INSERT INTO Users (f_name, l_name) VALUES('$fname', '$lname')";
-
-echo "<p><b>Fname: " . $fname . " Lname: " . $lname . "<br>Query: " . $sql . "</b></p>";
 
   if( $conn->query($sql) === TRUE){
   	echo "<p>You've been added to the database</p>";
   }else{
   	echo "Error: " . $sql . "<br>" . mysqli_error($conn);
   }
-  mysqli_close($conn);
 
+  $last_id = $conn->insert_id;
+  mysqli_close($conn);
+  return $last_id;
 }
 
-
-function load_network( $network ){
-
-
-echo "<p><b>Loading the your network into the database ...</b></p>";
-//var_dump($network);
-//$fname = $network->values[0]->siteStandardProfileRequest->url;
-//echo $fname;
-
+// This function takes the network PHP object returned by the LinkedIn
+// server and adds the relevent values to the database.  It also takes an
+// integer that is used to add the foreign key that references the user
+// whose contacts these are.
+function load_network( $network, $last_id ){
+  echo "<p><b>Loading the network into the database ...</b></p>";
+  // Create the database connection
   $servername = "localhost";
   $username = "from_web";
   $password = 'Z!s2D#r4%';
@@ -190,23 +190,93 @@ echo "<p><b>Loading the your network into the database ...</b></p>";
   }else{
     echo "Connected successfully ...<br>";
   }                
-
-
-
-    for( $i=0; $i<count($network->values); $i++){ 
+  
+  // Add a row to the Network table for each contact in the network object
+  for( $i=0; $i<count($network->values); $i++){ 
     $fname = $network->values[$i]->firstName;
     $lname = $network->values[$i]->lastName;
     $url = $network->values[$i]->siteStandardProfileRequest->url;
-    $sql = "INSERT INTO Network (f_name, l_name, l_url) VALUES('$fname', '$lname', '$url')";
+    $sql = "INSERT INTO Network (c_of, f_name, l_name, l_url) VALUES('$last_id', '$fname', '$lname', '$url')";
 
-echo "<p>First: " . $fname . " Last: " . $lname . " URLL " . $url . "</p>";
+// Diagnostics    
+//echo "<p>First: " . $fname . " Last: " . $lname . " URLL " . $url . "</p>";
 
     if( $conn->query($sql) === TRUE){
-      echo "<p>Your network has been added to the database</p>";
+//    Count the number of successes      
+//    echo "<p>Your network has been added to the database</p>";
     }else{
+//    Count the number of errors, update log
       echo "Error: " . $sql . "<br>" . mysqli_error($conn);
     }
   }
   mysqli_close($conn);
 }
 
+function load_single_contact($lname, $fname){
+
+}
+
+function count_private_returns($network){
+
+}
+
+function count_query_errors($sql_output){
+
+}
+
+function edit_individ_contact($contact){
+
+}
+
+function clear_database(){
+
+}
+
+
+function delete_db(){
+  echo "Deleting";
+  $servername = "localhost";
+  $username = "from_web";
+  $password = 'Z!s2D#r4%';
+  $dbname = "490_db";
+            
+  // Create the connection 
+  $conn = new mysqli($servername, $username, $password, $dbname);
+  if( $conn->connect_error ){
+    die("Connection failed: " . $conn->connect_error);
+  }else{
+    echo "Connected successfully ...<br>";
+  }   
+
+  // Delete all rows from the Network table
+  $sql="DELETE FROM Network";
+  if($conn->query($sql)===TRUE){
+    echo"<p><b>Network deleted</b></p>";
+  }else{
+    echo "<p><b>Error deleting record: " . $conn->error . "</b></p>";
+  }
+
+  // Reset the primary key to 0
+  $sql="ALTER TABLE Network AUTO_INCREMENT=1";
+  if($conn->query($sql)===TRUE){
+    echo"<p><b>Network PK reset</b></p>";
+  }else{
+    echo "<p><b>Error Altering Network's PK: " . $conn->error . "</b></p>";
+  }
+
+  // Delete all rows from the Users table
+  $sql="DELETE FROM Users";
+  if($conn->query($sql)===TRUE){
+    echo"<p><b>Users deleted</b></p>";
+  }else{
+    echo "<p><b>Error deleting record: " . $conn->error . "</b></p>";
+  }
+  
+  // Reset the primary key to 0
+  $sql="ALTER TABLE Users AUTO_INCREMENT=1";
+  if($conn->query($sql)===TRUE){
+    echo"<p><b>Users PK reset</b></p>";
+  }else{
+    echo "<p><b>Error Altering Users' PK: " . $conn->error . "</b></p>";
+  }
+}

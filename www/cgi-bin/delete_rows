@@ -1,0 +1,47 @@
+  function delete_db(){
+echo "Deleting";
+    $servername = "localhost";
+    $username = "from_web";
+    $password = 'Z!s2D#r4%';
+    $dbname = "490_db";
+            
+    // Create the connection 
+    $conn = new mysqli($servername, $username, $password, $dbname);
+    if( $conn->connect_error ){
+      die("Connection failed: " . $conn->connect_error);
+    }else{
+      echo "Connected successfully ...<br>";
+    }   
+
+  // Delete all rows from the Network table
+  $sql="DELETE FROM Network";
+  if($conn->query($sql)===TRUE){
+    echo"<p><b>Network deleted</b></p>";
+  }else{
+    echo "<p><b>Error deleting record: " . $conn->error . "</b></p>";
+  }
+
+  // Reset the primary key to 0
+  $sql="ALTER TABLE Network AUTO_INCREMENT=1";
+  if($conn->query($sql)===TRUE){
+    echo"<p><b>Network PK reset</b></p>";
+  }else{
+    echo "<p><b>Error Altering Network's PK: " . $conn->error . "</b></p>";
+  }
+
+  // Delete all rows from the Users table
+  $sql="DELETE FROM Users";
+  if($conn->query($sql)===TRUE){
+    echo"<p><b>Users deleted</b></p>";
+  }else{
+    echo "<p><b>Error deleting record: " . $conn->error . "</b></p>";
+  }
+  
+  // Reset the primary key to 0
+  $sql="ALTER TABLE Users AUTO_INCREMENT=1";
+  if($conn->query($sql)===TRUE){
+    echo"<p><b>Users PK reset</b></p>";
+  }else{
+    echo "<p><b>Error Altering Users' PK: " . $conn->error . "</b></p>";
+  }
+}
