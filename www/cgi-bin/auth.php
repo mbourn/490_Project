@@ -22,7 +22,7 @@ function start(){
     if ($_SESSION['state'] == $_GET['state']) {
         // Get token so you can make API calls
         getAccessToken();
-        echo "<p><b>Call Token</b></p>";
+//        echo "<p><b>Call Token</b></p>";
     } else {
         // CSRF attack? Or did you mix up your states?
         exit;
@@ -35,29 +35,33 @@ function start(){
       if (empty($_SESSION['access_token'])) {
         // Start authorization process
         getAuthorizationCode();
-        echo "<p><b>Call Auth</b></p>";
+//        echo "<p><b>Call Auth</b></p>";
       }
   }
  
   // Congratulations! You have a valid token. Now fetch your profile 
+//echo "<p>fetching user</p>";
   $user = fetch('GET', '/v1/people/~');
 
   // Get the user's network
+//echo "<p>fetchin network</p>";
   $network = fetch('GET', '/v1/people/~/connections:(first-name,last-name,site-standard-profile-request)');
 
-  print "Hello $user->firstName $user->lastName.";
+//  print "Hello $user->firstName $user->lastName.";
 
   // Add the user to the Users table, return the user's primary key
+//echo "<p>call load_user</p>";
   $last_id = load_user($user);
 
   // Add the user's network to the Network table with the user's primary
   // key as the foreign key.
+//echo "<p>call load_network</p>";
   load_network($network, $last_id);
-  exit;
+  return $last_id;
 }
 
 function getAuthorizationCode() {
-echo "<p><b>Get Auth</b></p>";
+//echo "<p><b>Get Auth</b></p>";
     $params = array(
         'response_type' => 'code',
         'client_id' => API_KEY,
@@ -78,7 +82,7 @@ echo "<p><b>Get Auth</b></p>";
 }
      
 function getAccessToken() {
-echo "<p><b>Get Token</b></p>";
+//echo "<p><b>Get Token</b></p>";
     $params = array(
         'grant_type' => 'authorization_code',
         'client_id' => API_KEY,
@@ -113,7 +117,7 @@ echo "<p><b>Get Token</b></p>";
 }
  
 function fetch($method, $resource, $body = '') {
-echo "<p>Fetching</p>";
+//echo "<p>Fetching</p>";
 //  print $_SESSION['access_token'];
  
     $opts = array(
@@ -142,7 +146,7 @@ echo "<p>Fetching</p>";
 // This function takes the user php object returned from LinkedIn and adds
 // the relevent values to the database 
 function load_user($user){ 
-  echo "<p><b>Loading user</b></p>";
+//  echo "<p><b>Loading user</b></p>";
   $servername = "localhost";
   $username = "from_web";
   $password = 'Z!s2D#r4%';
@@ -153,7 +157,7 @@ function load_user($user){
   if( $conn->connect_error ){
     die("Connection failed: " . $conn->connect_error);
   }else{
-    echo "Connected successfully ...<br>";
+//    echo "Connected successfully ...<br>";
   }
   
   // Load the contents of the passed PHP object into the database
@@ -162,7 +166,7 @@ function load_user($user){
   $sql = "INSERT INTO Users (f_name, l_name) VALUES('$fname', '$lname')";
 
   if( $conn->query($sql) === TRUE){
-  	echo "<p>You've been added to the database</p>";
+//  	echo "<p>You've been added to the database</p>";
   }else{
   	echo "Error: " . $sql . "<br>" . mysqli_error($conn);
   }
@@ -177,7 +181,7 @@ function load_user($user){
 // integer that is used to add the foreign key that references the user
 // whose contacts these are.
 function load_network( $network, $last_id ){
-  echo "<p><b>Loading the network into the database ...</b></p>";
+//  echo "<p><b>Loading the network into the database ...</b></p>";
   // Create the database connection
   $servername = "localhost";
   $username = "from_web";
@@ -188,7 +192,7 @@ function load_network( $network, $last_id ){
   if( $conn->connect_error ){
     die("Connection failed: " . $conn->connect_error);
   }else{
-    echo "Connected successfully ...<br>";
+//    echo "Connected successfully ...<br>";
   }                
   
   // Add a row to the Network table for each contact in the network object

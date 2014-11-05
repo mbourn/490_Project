@@ -61,6 +61,7 @@ echo "Deleting";
 <?php
   if($_GET["action"]=='deletedb'){
   delete_db();
+  echo '<button onclick="window.location.href=\'https://mbourn.com/contents.php\'">View Database</button>';
 }?>
 
 <h1> This is to test db connection and interactions </h1>
