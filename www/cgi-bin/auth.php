@@ -56,8 +56,14 @@ function start(){
   // Add the user's network to the Network table with the user's primary
   // key as the foreign key.
 //echo "<p>call load_network</p>";
-  load_network($network, $last_id);
-  return $last_id;
+  $errors = load_network($network, $last_id);
+  var_dump($last_id);
+  var_dump($errors);
+  $return_info = array(
+    'last_id' => $last_id,
+    'errors' => $errors,
+  );
+  return $return_info;
 }
 
 function getAuthorizationCode() {
@@ -194,7 +200,7 @@ function load_network( $network, $last_id ){
   }else{
 //    echo "Connected successfully ...<br>";
   }                
-  
+  $errors=0;
   // Add a row to the Network table for each contact in the network object
   for( $i=0; $i<count($network->values); $i++){ 
     $fname = $network->values[$i]->firstName;
@@ -206,18 +212,42 @@ function load_network( $network, $last_id ){
 //echo "<p>First: " . $fname . " Last: " . $lname . " URLL " . $url . "</p>";
 
     if( $conn->query($sql) === TRUE){
-//    Count the number of successes      
-//    echo "<p>Your network has been added to the database</p>";
     }else{
-//    Count the number of errors, update log
-      echo "Error: " . $sql . "<br>" . mysqli_error($conn);
+      $errors+=1;
     }
   }
   mysqli_close($conn);
+  return $errors;
 }
 
 function load_single_contact($lname, $fname){
 
+}
+
+// Count the number of contacts that have set their profiles to "private" and
+// return that number
+function count_privates($last_id){
+  $servername = "localhost";
+  $username = "from_web";
+  $password = 'Z!s2D#r4%';
+  $dbname = "490_db";
+  $conn = new mysqli($servername, $username, $password, $dbname);
+  if( $conn->connect_error ){
+    die("Connection failed: " . $conn->connect_error);
+  }else{
+  }
+
+  $sql = "SELECT f_name FROM Network WHERE f_name = 'private' AND c_of = $last_id";     
+  echo $sql;
+  $count=0;
+  $result = mysqli_query($conn, $sql);
+  if(mysqli_num_rows($result) > 0){
+    while($row = mysqli_fetch_assoc($result)){
+      $count+=1;
+    }
+  }
+  mysqli_close($conn);
+  return $count;
 }
 
 function count_private_returns($network){
