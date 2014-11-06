@@ -152,19 +152,8 @@ function fetch($method, $resource, $body = '') {
 // This function takes the user php object returned from LinkedIn and adds
 // the relevent values to the database 
 function load_user($user){ 
-//  echo "<p><b>Loading user</b></p>";
-  $servername = "localhost";
-  $username = "from_web";
-  $password = 'Z!s2D#r4%';
-  $dbname = "490_db";
-  
-  // Create the connection 
-  $conn = new mysqli($servername, $username, $password, $dbname);
-  if( $conn->connect_error ){
-    die("Connection failed: " . $conn->connect_error);
-  }else{
-//    echo "Connected successfully ...<br>";
-  }
+  // Create the connection
+  $conn = create_db_connection();
   
   // Load the contents of the passed PHP object into the database
   $fname = $user->firstName;
@@ -187,30 +176,20 @@ function load_user($user){
 // integer that is used to add the foreign key that references the user
 // whose contacts these are.
 function load_network( $network, $last_id ){
-//  echo "<p><b>Loading the network into the database ...</b></p>";
   // Create the database connection
-  $servername = "localhost";
-  $username = "from_web";
-  $password = 'Z!s2D#r4%';
-  $dbname = "490_db";
+  $conn = create_db_connection();
 
-  $conn = new mysqli($servername, $username, $password, $dbname);
-  if( $conn->connect_error ){
-    die("Connection failed: " . $conn->connect_error);
-  }else{
-//    echo "Connected successfully ...<br>";
-  }                
-  $errors=0;
   // Add a row to the Network table for each contact in the network object
+  $errors=0;
   for( $i=0; $i<count($network->values); $i++){ 
     $fname = $network->values[$i]->firstName;
     $lname = $network->values[$i]->lastName;
     $url = $network->values[$i]->siteStandardProfileRequest->url;
+
+    $fname = strtr($fname, ',', " ");
+    $lname = strtr($lname, ',', " ");
+
     $sql = "INSERT INTO Network (c_of, f_name, l_name, l_url) VALUES('$last_id', '$fname', '$lname', '$url')";
-
-// Diagnostics    
-//echo "<p>First: " . $fname . " Last: " . $lname . " URLL " . $url . "</p>";
-
     if( $conn->query($sql) === TRUE){
     }else{
       $errors+=1;
@@ -220,22 +199,11 @@ function load_network( $network, $last_id ){
   return $errors;
 }
 
-function load_single_contact($lname, $fname){
-
-}
-
 // Count the number of contacts that have set their profiles to "private" and
 // return that number
 function count_privates($last_id){
-  $servername = "localhost";
-  $username = "from_web";
-  $password = 'Z!s2D#r4%';
-  $dbname = "490_db";
-  $conn = new mysqli($servername, $username, $password, $dbname);
-  if( $conn->connect_error ){
-    die("Connection failed: " . $conn->connect_error);
-  }else{
-  }
+  // Create the connection
+  $conn = create_db_connection();
 
   $sql = "SELECT f_name FROM Network WHERE f_name = 'private' AND c_of = $last_id";     
   echo $sql;
@@ -250,37 +218,22 @@ function count_privates($last_id){
   return $count;
 }
 
-function count_private_returns($network){
-
-}
-
-function count_query_errors($sql_output){
-
+function load_single_contact($lname, $fname){
+  /*
+  //parameterize the input from user, defend against SQL Injection
+  $stmt = $db->prepare('update people set name = ? where id = ?');
+  $stmt->bind_param('si',$name,$id);
+  $stmt->execute();*/
 }
 
 function edit_individ_contact($contact){
 
 }
 
-function clear_database(){
-
-}
-
-
 function delete_db(){
   echo "Deleting";
-  $servername = "localhost";
-  $username = "from_web";
-  $password = 'Z!s2D#r4%';
-  $dbname = "490_db";
-            
-  // Create the connection 
-  $conn = new mysqli($servername, $username, $password, $dbname);
-  if( $conn->connect_error ){
-    die("Connection failed: " . $conn->connect_error);
-  }else{
-    echo "Connected successfully ...<br>";
-  }   
+  // Create the connection
+  $conn = create_db_connection();
 
   // Delete all rows from the Network table
   $sql="DELETE FROM Network";
@@ -314,3 +267,124 @@ function delete_db(){
     echo "<p><b>Error Altering Users' PK: " . $conn->error . "</b></p>";
   }
 }
+
+function create_db_connection(){
+  $servername = "localhost";
+  $username = "from_web";
+  $password = 'Z!s2D#r4%';
+  $dbname = "490_db";
+                
+  // Create the connection 
+  $conn = new mysqli($servername, $username, $password, $dbname);
+  if( $conn->connect_error ){
+    die("Connection failed: " . $conn->connect_error);
+  }else{
+    echo "Connected successfully ...<br>";
+  }
+  return $conn;
+}  
+
+function create_all($last_id){
+  // Create the connection
+  $conn = create_db_connection();
+
+  // Create and submit query
+  $sql="SELECT f_name, l_name, l_url FROM Network WHERE c_of = $last_id";
+  $result = mysqli_query($conn, $sql);
+
+  // Create zip file to hold all the vCards
+  $zip = new ZipArchive();
+  $zip_file = 'vCards/linkedin_contacts.zip';
+  if( $zip->open($zip_file, ZipArchive::CREATE)!==TRUE){
+    exit("Cannot open <$zip_file>\n");
+  }
+
+
+  //var_dump($return);
+
+  /*  
+  while($row = mysqli_fetch_array($result)){
+
+    $id=$row['c_id'];
+    $of=$row['c_of'];
+    $f_name=$row['f_name'];
+    $l_name=$row['l_name'];
+    $l_url=$row['l_url'];
+    $email=$row['email'];
+    $addr=$row['addr'];
+    $phone1=$row['phone1'];
+    $phone2=$row['phone2'];
+    $twitr=$row['twitr'];
+
+    $vcard_content = "BEGIN:VCARD\r";
+    $vcard_content .= "VERSION:3.0\r";
+    $vcard_content .= "N:".$l_name.";".$f_name.";;\r"; 
+    $vcard_content .= "item2.URL;tpe=pref:".$l_url."\r";
+    $vcard_content .= 'item2.X-ABLabel:_$!<LinkedInPage>!$_\r';
+    $vcard_content .= "X-ABShowAs:COMPANY\r";
+    $vcard_content .= "END:VCARD";
+
+    echo "<pre><p><b>".$vcard_content."</b></p></pre>";
+  }*/
+
+  error_reporting(E_ALL);
+  ini_set('display_errors','On');
+
+  $row = mysqli_fetch_array($result);
+  var_dump($row);
+  $f_name=$row['f_name'];
+  $l_name=$row['l_name'];
+  $l_url=$row['l_url'];
+
+  $vcard_content = make_vcard_content($f_name, $l_name, $l_url);
+  $vcard = make_vcard($vcard_content, $f_name, $l_name);
+  $zip->addFile($vcard);
+  
+  $zip->close();
+  dl_card($zip_file);
+  exit;
+}
+
+function make_vcard_content($f_name, $l_name, $l_url){
+  $vcard_content = "BEGIN:VCARD\r";
+  $vcard_content .= "VERSION:3.0\r";
+  $vcard_content .= "N:".$l_name.";".$f_name.";;\r";
+  $vcard_content .= "item1.URL;tpe=pref:".$l_url."\r";
+  $vcard_content .= 'item1.X-ABLabel:_$!<LinkedInPage>!$_\r';
+  $vcard_content .= "X-ABShowAs:COMPANY\r";
+  $vcard_content .= "END:VCARD";
+  echo "<pre><p><b>".$vcard_content."</b></p></pre>";
+  return $vcard_content;
+}
+
+function make_vcard($vcard_content, $f_name, $l_name){
+  error_reporting(E_ALL);
+  ini_set('display_errors','On');
+
+  $vcard = fopen('vCards/'.$f_name.'_'.$l_name.'.vcf', 'w') or die('vCard creation failed.');
+  fwrite($vcard, $vcard_content);
+  fclose($vcard);
+  $vcard = 'vCards/'.$f_name.'_'.$l_name.'.vcf';
+  return $vcard;
+}
+
+function dl_card($vcard){
+  // Forces download of file
+echo $vcard;
+  if (file_exists($vcard)) {
+    header('Content-Description: File Transfer');
+    header('Content-Type: application/octet-stream');
+    header('Content-Disposition: attachment; filename='.basename($vcard));
+    header('Expires: 0');
+    header('Cache-Control: must-revalidate');
+    header('Pragma: public');
+    header('Content-Length: ' . filesize($vcard));
+    ob_clean();
+    flush();
+    readfile($vcard);
+    exit;
+  }else{
+    echo "Couldn't find the vCard";
+  }
+}
+
