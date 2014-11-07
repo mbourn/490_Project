@@ -26,6 +26,6 @@
     $last_id = intval($_GET['id']);
     create_all($last_id);
   ?>
-
+  
 </body>
 </html>

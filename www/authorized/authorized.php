@@ -8,8 +8,6 @@
 $info_array=start();
 $last_id=$info_array['last_id'];
 $errors=$info_array['errors'];
-var_dump($errors);
-var_dump($last_id);
 ?>
 </head>
 <body>
@@ -40,13 +38,10 @@ var_dump($last_id);
     <h3>Create One vCard</h3>
     <section id="get_one_expl">If you would like to create a single vCard for one of your contacts, please enter your contact's first and last name and then click "Search".
     </section>
-
-    <section id="get_one_button">
-      <form action="edit_one.php" method="get">
-      <input type="search" name="f_name" placeholder="First Name">
-      <input type="search" name="l_name" placeholder="Last Name">
-      <input id="button" type="submit" value="search">
-      </form>
+    
+    <section id="create_one_button">
+    <button onclick="window.location=href='https://mbourn.com/one_vcard.php?id=<?php echo $last_id; ?>'">Continue
+      </button>
     </section>
   </div>
 
@@ -62,7 +57,7 @@ var_dump($last_id);
     <section id="get_all_expl">
       <h3>Create The Whole Set of vCards</h3>
       If you would like to create and download the entire set of vCards, click here:
-      <?php echo '<button onclick="window.location=href=\'https://mbourn.com/create_vcard.php?id=' . $last_id . '\'">Continue</button>' ?>
+      <?php echo '<button onclick="window.location=href=\'https://mbourn.com/create_vcard.php?id=' . $last_id . '\'">Continue</button>'; ?>
   </div>
 </main>
 <footer></footer>

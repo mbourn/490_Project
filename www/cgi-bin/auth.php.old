@@ -1,19 +1,20 @@
-
 <?php
 function start(){
-  error_reporting(E_ALL);
-  ini_set('display_errors','On');
+echo "Running start()<br>";
   // Change these
   define('API_KEY',      '75p5ptqc5060jj'                          );
   define('API_SECRET',   'GJIsoTietQCigBWb'                        );
+
   // You must pre-register your redirect_uri at https://www.linkedin.com/secure/developer
   define('REDIRECT_URI', 'https://mbourn.com/authorized/authorized.php');
   define('SCOPE',        'r_fullprofile r_emailaddress r_network');
+
   // You'll probably use a database
   session_name('linkedin');
   session_start();
  
   // OAuth 2 Control Flow
+echo "Start OAuth2";
   if (isset($_GET['error'])) {
     // LinkedIn returned an error
     print $_GET['error'] . ': ' . $_GET['error_description'];
@@ -22,10 +23,11 @@ function start(){
     // User authorized your application
     if ($_SESSION['state'] == $_GET['state']) {
         // Get token so you can make API calls
+echo "Call Token<br>";
         getAccessToken();
-//        echo "<p><b>Call Token</b></p>";
     } else {
         // CSRF attack? Or did you mix up your states?
+echo "failed at CSRF check<br>";
         exit;
     }
   } else { 
@@ -35,21 +37,25 @@ function start(){
       }
       if (empty($_SESSION['access_token'])) {
         // Start authorization process
+echo "Call Auth<br>";
         getAuthorizationCode();
-//        echo "<p><b>Call Auth</b></p>";
       }
   }
  
   // Congratulations! You have a valid token. Now fetch your profile 
 //echo "<p>fetching user</p>";
   $user = fetch('GET', '/v1/people/~');
+
   // Get the user's network
 //echo "<p>fetchin network</p>";
   $network = fetch('GET', '/v1/people/~/connections:(first-name,last-name,site-standard-profile-request)');
+
 //  print "Hello $user->firstName $user->lastName.";
+
   // Add the user to the Users table, return the user's primary key
 //echo "<p>call load_user</p>";
   $last_id = load_user($user);
+
   // Add the user's network to the Network table with the user's primary
   // key as the foreign key.
 //echo "<p>call load_network</p>";
@@ -62,10 +68,9 @@ function start(){
   );
   return $return_info;
 }
+
 function getAuthorizationCode() {
-  error_reporting(E_ALL);
-  ini_set('display_errors','On');
-//echo "<p><b>Get Auth</b></p>";
+echo "<p><b>Get Auth</b></p>";
     $params = array(
         'response_type' => 'code',
         'client_id' => API_KEY,
@@ -86,9 +91,7 @@ function getAuthorizationCode() {
 }
      
 function getAccessToken() {
-  error_reporting(E_ALL);
-  ini_set('display_errors','On');
-//echo "<p><b>Get Token</b></p>";
+echo "<p><b>Get Token</b></p>";
     $params = array(
         'grant_type' => 'authorization_code',
         'client_id' => API_KEY,
@@ -123,9 +126,7 @@ function getAccessToken() {
 }
  
 function fetch($method, $resource, $body = '') {
-  error_reporting(E_ALL);
-  ini_set('display_errors','On');
-//echo "<p>Fetching</p>";
+echo "<p>Fetching</p>";
 //  print $_SESSION['access_token'];
  
     $opts = array(
@@ -139,7 +140,7 @@ function fetch($method, $resource, $body = '') {
     $url = 'https://api.linkedin.com' . $resource;
  
     // Append query parameters (if there are any)
-    //if (count($params)) { $url .= '?' . http_build_query($params); }
+    if (count($params)) { $url .= '?' . http_build_query($params); }
  
     // Tell streams to make a (GET, POST, PUT, or DELETE) request
     // And use OAuth 2 access token as Authorization
@@ -150,11 +151,10 @@ function fetch($method, $resource, $body = '') {
     // Native PHP object, please
     return json_decode($response);
 }
+
 // This function takes the user php object returned from LinkedIn and adds
 // the relevent values to the database 
 function load_user($user){ 
-  error_reporting(E_ALL);
-  ini_set('display_errors','On');
   // Create the connection
   $conn = create_db_connection();
   
@@ -162,11 +162,13 @@ function load_user($user){
   $fname = $user->firstName;
   $lname = $user->lastName;
   $sql = "INSERT INTO Users (f_name, l_name) VALUES('$fname', '$lname')";
+
   if( $conn->query($sql) === TRUE){
 //  	echo "<p>You've been added to the database</p>";
   }else{
   	echo "Error: " . $sql . "<br>" . mysqli_error($conn);
   }
+
   $last_id = $conn->insert_id;
   mysqli_close($conn);
   return $last_id;
@@ -177,18 +179,19 @@ function load_user($user){
 // integer that is used to add the foreign key that references the user
 // whose contacts these are.
 function load_network( $network, $last_id ){
-  error_reporting(E_ALL);
-  ini_set('display_errors','On');
   // Create the database connection
   $conn = create_db_connection();
+
   // Add a row to the Network table for each contact in the network object
   $errors=0;
   for( $i=0; $i<count($network->values); $i++){ 
     $fname = $network->values[$i]->firstName;
     $lname = $network->values[$i]->lastName;
     $url = $network->values[$i]->siteStandardProfileRequest->url;
+
     $fname = strtr($fname, ',', " ");
     $lname = strtr($lname, ',', " ");
+
     $sql = "INSERT INTO Network (c_of, f_name, l_name, l_url) VALUES('$last_id', '$fname', '$lname', '$url')";
     if( $conn->query($sql) === TRUE){
     }else{
@@ -198,15 +201,15 @@ function load_network( $network, $last_id ){
   mysqli_close($conn);
   return $errors;
 }
-// Count the number of contacts that have set their profiles to "private" 
-// and return that number
+
+// Count the number of contacts that have set their profiles to "private" and
+// return that number
 function count_privates($last_id){
-  error_reporting(E_ALL);
-  ini_set('display_errors','On');
   // Create the connection
   $conn = create_db_connection();
+
   $sql = "SELECT f_name FROM Network WHERE f_name = 'private' AND c_of = $last_id";     
-//  echo $sql;
+  echo $sql;
   $count=0;
   $result = mysqli_query($conn, $sql);
   if(mysqli_num_rows($result) > 0){
@@ -218,20 +221,7 @@ function count_privates($last_id){
   return $count;
 }
 
-
-function make_one($c_id){
-  $conn = create_db_connection();
-  $sql = "SELECT f_name, l_name, l_url FROM Network WHERE c_id = $c_id";
-  $result = mysqli_query($conn, $sql);
-  $res = mysqli_fetch_array($result);
-  $f_name = $res['f_name'];
-  $l_name = $res['l_name'];
-  $l_rul = $res['l_url'];
-  $vcar_content = make_vcard_content($f_name, $l_name, $l_url);
-var_dump($vcard_content);
-  $vcard = make_vcard($vcard_content, $f_name, $l_name);
-  dl_card($vcard);
-  
+function load_single_contact($lname, $fname){
   /*
   //parameterize the input from user, defend against SQL Injection
   $stmt = $db->prepare('update people set name = ? where id = ?');
@@ -244,11 +234,10 @@ function edit_individ_contact($contact){
 }
 
 function delete_db(){
-  error_reporting(E_ALL);
-  ini_set('display_errors','On');
   echo "Deleting";
   // Create the connection
   $conn = create_db_connection();
+
   // Delete all rows from the Network table
   $sql="DELETE FROM Network";
   if($conn->query($sql)===TRUE){
@@ -256,6 +245,7 @@ function delete_db(){
   }else{
     echo "<p><b>Error deleting record: " . $conn->error . "</b></p>";
   }
+
   // Reset the primary key to 0
   $sql="ALTER TABLE Network AUTO_INCREMENT=1";
   if($conn->query($sql)===TRUE){
@@ -263,6 +253,7 @@ function delete_db(){
   }else{
     echo "<p><b>Error Altering Network's PK: " . $conn->error . "</b></p>";
   }
+
   // Delete all rows from the Users table
   $sql="DELETE FROM Users";
   if($conn->query($sql)===TRUE){
@@ -279,9 +270,8 @@ function delete_db(){
     echo "<p><b>Error Altering Users' PK: " . $conn->error . "</b></p>";
   }
 }
+
 function create_db_connection(){
-  error_reporting(E_ALL);
-  ini_set('display_errors','On');
   $servername = "localhost";
   $username = "from_web";
   $password = 'Z!s2D#r4%';
@@ -292,31 +282,32 @@ function create_db_connection(){
   if( $conn->connect_error ){
     die("Connection failed: " . $conn->connect_error);
   }else{
-//    echo "Connected successfully ...<br>";
+    echo "Connected successfully ...<br>";
   }
   return $conn;
-}
-
+}  
 
 function create_all($last_id){
-  error_reporting(E_ALL);
-  ini_set('display_errors','On');
   // Create the connection
   $conn = create_db_connection();
-  
+
   // Create and submit query
   $sql="SELECT f_name, l_name, l_url FROM Network WHERE c_of = $last_id";
   $result = mysqli_query($conn, $sql);
-   
+
   // Create zip file to hold all the vCards
   $zip = new ZipArchive();
   $zip_file = 'vCards/linkedin_contacts.zip';
   if( $zip->open($zip_file, ZipArchive::CREATE)!==TRUE){
     exit("Cannot open <$zip_file>\n");
   }
+
+
   //var_dump($return);
+
   /*  
   while($row = mysqli_fetch_array($result)){
+
     $id=$row['c_id'];
     $of=$row['c_of'];
     $f_name=$row['f_name'];
@@ -327,6 +318,7 @@ function create_all($last_id){
     $phone1=$row['phone1'];
     $phone2=$row['phone2'];
     $twitr=$row['twitr'];
+
     $vcard_content = "BEGIN:VCARD\r";
     $vcard_content .= "VERSION:3.0\r";
     $vcard_content .= "N:".$l_name.";".$f_name.";;\r"; 
@@ -334,42 +326,29 @@ function create_all($last_id){
     $vcard_content .= 'item2.X-ABLabel:_$!<LinkedInPage>!$_\r';
     $vcard_content .= "X-ABShowAs:COMPANY\r";
     $vcard_content .= "END:VCARD";
+
     echo "<pre><p><b>".$vcard_content."</b></p></pre>";
   }*/
 
-  while($row = mysqli_fetch_array($result)){
-    // var_dump($row);
-    $f_name=$row['f_name'];
-    $l_name=$row['l_name'];
-    $l_url=$row['l_url'];
-    $vcard_content = make_vcard_content($f_name, $l_name, $l_url);
-    $vcard = make_vcard($vcard_content, $f_name, $l_name);
-    $zip->addFile($vcard);
-  }
+  error_reporting(E_ALL);
+  ini_set('display_errors','On');
 
-  // Finish the zip file and force download it to the user
+  $row = mysqli_fetch_array($result);
+  var_dump($row);
+  $f_name=$row['f_name'];
+  $l_name=$row['l_name'];
+  $l_url=$row['l_url'];
+
+  $vcard_content = make_vcard_content($f_name, $l_name, $l_url);
+  $vcard = make_vcard($vcard_content, $f_name, $l_name);
+  $zip->addFile($vcard);
+  
   $zip->close();
   dl_card($zip_file);
-
-  // Delete the files
-  delete_files();
   exit;
 }
 
-// Delete all of the files in the vCards directory
-function delete_files(){
-  $files = glob('vCards/*');
-  foreach($files as $file){
-    if(is_file($file)){
-      unlink($file);
-    }   
-  }
-}
-
-
 function make_vcard_content($f_name, $l_name, $l_url){
-  error_reporting(E_ALL);
-  ini_set('display_errors','On');
   $vcard_content = "BEGIN:VCARD\r";
   $vcard_content .= "VERSION:3.0\r";
   $vcard_content .= "N:".$l_name.";".$f_name.";;\r";
@@ -377,32 +356,24 @@ function make_vcard_content($f_name, $l_name, $l_url){
   $vcard_content .= 'item1.X-ABLabel:_$!<LinkedInPage>!$_\r';
   $vcard_content .= "X-ABShowAs:COMPANY\r";
   $vcard_content .= "END:VCARD";
-//  echo "<pre><p><b>".$vcard_content."</b></p></pre>";
+  echo "<pre><p><b>".$vcard_content."</b></p></pre>";
   return $vcard_content;
 }
 
-
 function make_vcard($vcard_content, $f_name, $l_name){
-//echo "Make the card<br>";
   error_reporting(E_ALL);
   ini_set('display_errors','On');
-  $card_name = $f_name."_".$l_name;
-  $card_name = strtr($card_name, " ", "_");
-  $vcard = fopen('vCards/'.$card_name.'.vcf', 'w') or die('vCard creation failed.');
+
+  $vcard = fopen('vCards/'.$f_name.'_'.$l_name.'.vcf', 'w') or die('vCard creation failed.');
   fwrite($vcard, $vcard_content);
   fclose($vcard);
-  $vcard = 'vCards/'.$card_name.'.vcf';
-//  echo file_exists($vcard);
+  $vcard = 'vCards/'.$f_name.'_'.$l_name.'.vcf';
   return $vcard;
 }
 
-
 function dl_card($vcard){
-  error_reporting(E_ALL);
-  ini_set('display_errors','On');
-
   // Forces download of file
-  echo $vcard;
+echo $vcard;
   if (file_exists($vcard)) {
     header('Content-Description: File Transfer');
     header('Content-Type: application/octet-stream');
@@ -414,7 +385,9 @@ function dl_card($vcard){
     ob_clean();
     flush();
     readfile($vcard);
+    exit;
   }else{
     echo "Couldn't find the vCard";
   }
 }
+
