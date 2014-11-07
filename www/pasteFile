@@ -1,11 +1,3 @@
-      $conn = create_bd_connection();
-      $sql = "SELECT f_name, l_name, l_url FROM Network WHERE c_id = $cid";
-      $result = mysqli_query($conn, $sql);
-      $res = mysqli_fetch_array($result);
-      $f_name = $res['f_name'];
-      $l_name = $res['l_name'];
-      $l_rul = $res['l_url'];
-      $vcar_content = make_vcard_content($f_name, $l_name, $l_url);
-      $vcard = make_vcard($vcard_content, $f_name, $l_name);
-      dl_card($vcard);
-      break;
+  echo '<div id="search_result_div">';
+    if(!$result){
+      echo '<p id="search_result_fail">That contact was not found. Be sure to capitalilze the first   letter of the name. If that did help, your contact may have set his or her profile to private or      there may have been an error entering the information into the database.<br>Please try again or you   can create a vCard from scratch.</p>';

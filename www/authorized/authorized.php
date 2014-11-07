@@ -36,7 +36,7 @@ $errors=$info_array['errors'];
 
   <div id="get_one_div">
     <h3>Create One vCard</h3>
-    <section id="get_one_expl">If you would like to create a single vCard for one of your contacts, please enter your contact's first and last name and then click "Search".
+    <section id="get_one_expl">If you would like to create a vCard a specific contact or create a new vCard from scratch, click Continue.
     </section>
     
     <section id="create_one_button">
