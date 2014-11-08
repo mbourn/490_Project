@@ -220,7 +220,7 @@ function load_network( $network, $last_id ){
 /////////////////////////////////////////////////////////////////////////////////////////
 // Creates a vCard for every contact of the user, places all of the vCards into
 // a zip file and then force downloads the zip file to the user
-function create_all($last_id){
+function make_all($last_id){
   error_reporting(E_ALL);
   ini_set('display_errors','On');
   // Create the connection
@@ -231,8 +231,10 @@ function create_all($last_id){
   $result = mysqli_query($conn, $sql);
    
   // Create zip file to hold all the vCards
+  $dir_name = md5(time());
+  $dir_path = "vCards/".$dir_name."/";
   $zip = new ZipArchive();
-  $zip_file = 'vCards/linkedin_contacts.zip';
+  $zip_file = $dir_path.'linkedin_contacts.zip';
   if( $zip->open($zip_file, ZipArchive::CREATE)!==TRUE){
     exit("Cannot open <$zip_file>\n");
   }
@@ -274,7 +276,7 @@ function create_all($last_id){
   dl_card($zip_file);
 
   // Delete the files
-  delete_files();
+  //delete_files();
   exit;
 }
 
@@ -288,7 +290,7 @@ function make_one($c_id){
   $res = mysqli_fetch_array($result);
   $f_name = $res['f_name'];
   $l_name = $res['l_name'];
-  $l_rul = $res['l_url'];
+  $l_url = $res['l_url'];
   $vcard_content = make_vcard_content($f_name, $l_name, $l_url);
   $vcard = make_vcard($vcard_content, $f_name, $l_name);
   dl_card($vcard);
@@ -350,14 +352,39 @@ function render_search_div($has_searched, $result, $last_id){
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////
-// Creates the html for displaying the results of the search. Takes the search result 
-// array as the argument
-function render_search_result($result, $last_id){
-  echo '<div id="search_result_div">';
-    if(!$result){
-      echo '<p id="search_result_fail">That contact was not found. Be sure to capitalilze the first letter of the name. If that did help, your contact may have set his or her profile to private or there may have been an error entering the information into the database.<br>Please try again or you can create a vCard from scratch.</p>';
-      render_search_div($last_id);
+// Creates the html for displaying all of the user's contacts in a list. Each item in the
+// list will have a check box for selecting it to be included in the zipped file that
+// will be created and force downloaded when submit is clicked.  Takes the user's id and
+// the query results as arguments.
+function render_multi_div($result, $last_id){
+    
+
+  $count = 0;
+ // $array_size = $result->num_rows;
+  while($row = mysqli_fetch_array($result)){
+    // Set variables
+    $f_name = $row['f_name'];
+    $l_name = $row['l_name'];
+    $c_id = $row['c_id'];
+  
+    // Choose span background color
+    if($count % 2 == 0){
+      $color = 'lightgrey';
+    }else{
+      $color = 'white';
     }
+
+    // Print list of contacts
+    echo '<span style="background-color:'.$color.';display:inline-block;width:300px">';
+    echo '<input type="checkbox" name="contact[]" value="'.$c_id.'">';
+    echo $f_name." ".$l_name."</span>";
+ //   echo '<form action="edit_card.php" method="POST" id="multi_edit_btn">';
+//    echo '<input type="hidden" name="edit_id" value="'.$c_id.'">';
+    echo '<button onclick="window.location=href="https://mbourn.com/edit_contact.php?id='.$last_id.'" id="edit_btn">Edit</button><br>';
+//    echo '</form><br>';
+    $count++;
+  }
+
             
 }
 
@@ -385,6 +412,41 @@ function create_db_connection(){
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////
+// Creates a set of vCards.  Takes an indexed array of c_ids as the argument
+function make_multi_set($c_id_array){
+
+  // Create db connection and variables
+  $conn = create_db_connection();
+  $array_size = count($_POST['contact']);
+
+  // Create directory for the vCards
+  $dir_name = md5(time());
+  $dir_path = "vCards/$dir_name/";
+  if( !mkdir($dir_path));{
+  }   
+
+  // Create the zip file
+  $zip = new ZipArchive();
+  $zip_file = "vCards/$dir_name/linkedin_contacts.zip";
+  if( $zip->open($zip_file, ZipArchive::CREATE)!==TRUE){
+    exit("Cannot open <$zip_file>\n");
+  }   
+              
+  // Go through the array, creating a vcard for each contact and adding it to the zip file
+  for($i=0;$i<$array_size;$i++){
+    $c_id = $c_id_array[$i];
+    $sql = "SELECT * FROM Network WHERE c_id = $c_id";
+    $result = mysqli_query($conn, $sql);
+    $row = mysqli_fetch_array($result);
+    $vcard_content = make_vcard_content($row['f_name'], $row['l_name'], $row['l_url']);
+    $vcard = make_vcard($vcard_content, $row['f_name'], $row['l_name']);
+    $zip->addFile($vcard);
+  }          
+  $zip->close();
+  dl_card($zip_file);
+}   
+       
+/////////////////////////////////////////////////////////////////////////////////////////
 // Creates the string used as the contents of the vCard
 // Takes the different fields as arguments
 // Will be modified in the future to take an array when program is expanded to include
@@ -410,12 +472,20 @@ function make_vcard_content($f_name, $l_name, $l_url){
 function make_vcard($vcard_content, $f_name, $l_name){
   error_reporting(E_ALL);
   ini_set('display_errors','On');
+  
   $card_name = $f_name."_".$l_name;
   $card_name = strtr($card_name, " ", "_");
-  $vcard = fopen('vCards/'.$card_name.'.vcf', 'w') or die('vCard creation failed.');
+  //echo "<br><hr><br>". $card_name;
+  $dir_path = "vCards/".md5(time()).'/';
+  //echo "<br>".$dir_path;
+  
+  if( !file_exists($dir_path)){
+    mkdir($dir_path);
+  }
+  $vcard = fopen("$dir_path".$card_name.'.vcf', 'w') or die('vCard creation failed.');
   fwrite($vcard, $vcard_content);
   fclose($vcard);
-  $vcard = 'vCards/'.$card_name.'.vcf';
+  $vcard = "$dir_path".$card_name.'.vcf';
   return $vcard;
 }
 
