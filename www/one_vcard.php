@@ -5,7 +5,7 @@
   error_reporting(E_ALL);
   ini_set('display_errors','On');
 
-  var_dump($_POST);
+  //var_dump($_POST);
 
   // Set variables
   if( isset($_GET['id'])){
@@ -23,15 +23,17 @@
     $post_action = $_POST['select_btn'];
   }elseif( isset($_POST['search_btn'])){
     $post_action = $_POST['search_btn'];
-  }else{
-    echo "ERROR: POST was malformed.<br>";
+  }elseif( isset($_POST['edit_btn'])){
+   // echo "ERROR: POST was malformed.<br>";
   }
 
   // Take appropriate action  
   switch($post_action){
     // If the user clicked on edit, perform edit functions
     case "Edit":
-      echo "EDIT";
+      header('HTTP/1.1 307 Temporary Redirect');
+      header('Location: https://mbourn.com/edit.php');
+      //echo "EDIT";
     break;
 
     // If the user clicked on Download, perform download functions
@@ -53,13 +55,6 @@
         echo "POST did not contain the contact's name<br>";
       }
       $search_result = find_contact($c_name, $last_id);
-      //render_search_result($search_result);
-      if($search_result->num_rows > 0){
-        echo "<br>Found<br>";
-      }else{
-        echo "<br>None<br>";
-      }
-
     break;
   }
 ?>
@@ -72,8 +67,9 @@
   $result = mysqli_query($conn, $sql);
   mysqli_close($conn);
 ?>
-<header></header>
-<h1>One vCard</h1>
+<header>
+  <?php render_header(); ?>
+</header>
 <div id="get_one_select_div">
   <p id="select_expl_p">Please select the contact from the dropdown box.  
     To download the vCard, click on Download.  To edit the vCard contents
@@ -82,7 +78,7 @@
   <form action="one_vcard.php" method="POST" id="select_form">
     <input type="hidden" name="last_id" value="<?php echo $last_id; ?>">
     <p id="select_p">
-      <select name="contact_id">
+      <select name="c_id">
       <?php 
         while($row = mysqli_fetch_array($result)){
           $f_name = $row['f_name'];

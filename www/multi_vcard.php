@@ -7,8 +7,6 @@
       error_reporting(E_ALL);
       ini_set('display_errors','On');
 
-    var_dump($_POST);
-
     if( isset($_GET['id'])){
       $last_id = $_GET['id'];
       if( isset($_GET['action']) && $_GET['action'] == 'all'){
@@ -31,13 +29,12 @@
     $conn = create_db_connection();
     $sql = "SELECT * FROM Network WHERE c_of = $last_id ORDER BY l_name ASC";
     $result = mysqli_query($conn, $sql);
-    var_dump($result);
 
   ?>
 </head>
 <body>
 <header>
- <h1>Multi</h1>
+  <?php render_header(); ?>
 </header>
 <main>
 <div id="multi_div_expl">

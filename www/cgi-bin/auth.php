@@ -148,26 +148,6 @@ function fetch($method, $resource, $body = '') {
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////
-// Count the number of contacts that have set their profiles to "private" 
-// and return that number
-function count_privates($last_id){
-  error_reporting(E_ALL);
-  ini_set('display_errors','On');
-  // Create the connection
-  $conn = create_db_connection();
-  $sql = "SELECT f_name FROM Network WHERE f_name = 'private' AND c_of = $last_id";     
-  $count=0;
-  $result = mysqli_query($conn, $sql);
-  if(mysqli_num_rows($result) > 0){
-    while($row = mysqli_fetch_assoc($result)){
-      $count+=1;
-    }
-  }
-  mysqli_close($conn);
-  return $count;
-}
-
-/////////////////////////////////////////////////////////////////////////////////////////
 // This function takes the user php object returned from LinkedIn and adds
 // the relevent values to the database 
 function load_user($user){ 
@@ -217,6 +197,168 @@ function load_network( $network, $last_id ){
   return $errors;
 }
 
+////////////////////////////////////////////////////////////////////////////////////////
+// Renders the page header
+function render_header(){
+  echo '<div id="header_div>';
+  echo '<span id="title" onclick="window.location=href=\'';
+  echo 'https://mbourn.com/?action=logout\'"><h2>LinkedIn Contact vCard Generator</h2></span>';
+
+  echo '<span id="logout_btn">';
+  echo '<button onclick="window.location=href\'https://mbourn.com/?action=logout\'">';
+  echo 'Logout</button></span>';
+
+  echo '</div>';
+}
+
+////////////////////////////////////////////////////////////////////////////////////////
+// Renders the html to display the, search results, search dialogue, text field, and 
+// button. Takes a boolean showing whether or not a search has been performed, the 
+// results of that search (NULL if $has_searched is FALSE), and the u_id of the current 
+// user as the arguments.
+function render_search_div($has_searched, $result, $last_id){
+  echo '<div id="search_result_div">';
+  if($has_searched && $result->num_rows == 0){
+    echo '<p id="search_result_fail"><b>That contact was not found.</b><br> Be sure to
+           capitalilze the first letter of the name. If that did help, your contact may 
+           have set his or her profile to private or there may have been an error entering 
+           the information into the database.<br>Please try again or you   can create a 
+           vCard from scratch.</p></div>';
+  }elseif($has_searched && $result->num_rows > 0){
+    echo '<p id="search_result_found">';
+    echo '<b>Found:</b><br>';
+    while( $row = mysqli_fetch_array($result)){
+      $f_name = $row['f_name'];
+      $l_name = $row['l_name'];
+      $c_id = $row['c_id'];
+      echo '<form action="one_vcard.php" method="POST" id="search_form">';
+      echo '<input type="hidden" name="c_id" value="'.$c_id.'">';
+      echo $f_name.' '.$l_name.' <input type="submit" name="select_btn" value="Edit"> <input type="submit" name="select_btn" value="Download"><br></form>';
+    }    
+    echo '</p></div>';
+  }
+  echo '<div id="search_div">';
+  echo '<p id="search_expl">';
+  echo 'To search for a contact in the database, enter either the person\'s first or last name and click on Search. </p>';
+  echo '<p id="search_form_p">';
+  echo '<form action="one_vcard.php" method="POST" id="search_form">';
+  echo 'Contact Name: <input type="text" name="c_name"><br>';
+  echo '<input type="hidden" name="last_id" value="'.$last_id.'">';
+  echo '<input type="submit" id="get_one_search_btn" name="search_btn" value="Search">';
+  echo '</form></p></div>';
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////
+// Creates the html for displaying all of the user's contacts in a list. Each item in the
+// list will have a check box for selecting it to be included in the zipped file that
+// will be created and force downloaded when submit is clicked.  Takes the user's id and
+// the query results as arguments.
+function render_multi_div($result, $last_id){
+    
+
+  $count = 0;
+  // $array_size = $result->num_rows;
+  echo '<table id="multi_table">';
+  while($row = mysqli_fetch_array($result)){
+    // Set variables
+    $f_name = $row['f_name'];
+    $l_name = $row['l_name'];
+    $c_id = $row['c_id'];
+  
+    // Choose span background color
+    if($count % 2 == 0){
+      $color = 'lightgrey';
+    }else{
+      $color = 'white';
+    }
+
+    // Print list of contacts
+    echo '<tr>';
+    echo '<td><span style="background-color:'.$color.';display:inline-block;width:300px">';
+    echo '<input type="checkbox" name="contact[]" value="'.$c_id.'">';
+    echo $f_name." ".$l_name."</span></td>";
+    echo '<td><form action="edit.php" method="POST" id="multi_edit_form">';
+    echo '<input type="hidden" name="c_id" value="'.$c_id.'">';
+    echo '<input type="submit" name="edit_btn" value="Edit"></form></td></tr>';
+    $count++;
+  }
+  echo '</table>';  
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////
+// Searches for an individual in the Network database
+// Takes a string  (either the first or last name of the contact) and the u_id of the 
+// user as the arguments. Does not sanitize or parameterize the data. Vulnerable.
+function find_contact($name, $c_of){
+  error_reporting(E_ALL);
+  ini_set('display_errors','On');
+  $conn = create_db_connection();
+  $sql = "SELECT * FROM Network WHERE (f_name = '$name' OR l_name = '$name') AND c_of = $c_of ORDER BY 2";
+  $result = mysqli_query($conn, $sql);
+  echo "<br><br>";
+  var_dump($result);
+  echo "<br><br>";
+  return $result;
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////
+function edit_individ_contact($contact){
+
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////
+// Creates and returns a connection to the local database
+function create_db_connection(){
+  error_reporting(E_ALL);
+  ini_set('display_errors','On');
+  $servername = "localhost";
+  $username = "from_web";
+  $password = 'Z!s2D#r4%';
+  $dbname = "490_db";
+                
+  // Create the connection 
+  $conn = new mysqli($servername, $username, $password, $dbname);
+  if( $conn->connect_error ){
+    die("Connection failed: " . $conn->connect_error);
+  }
+  return $conn;
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////
+// Creates a set of vCards.  Takes an indexed array of c_ids as the argument
+function make_multi_set($c_id_array){
+
+  // Create db connection and variables
+  $conn = create_db_connection();
+  $array_size = count($_POST['contact']);
+
+  // Create directory for the vCards
+  $dir_name = md5(time());
+  $dir_path = "vCards/$dir_name/";
+  if( !mkdir($dir_path));{
+  }   
+
+  // Create the zip file
+  $zip = new ZipArchive();
+  $zip_file = "vCards/$dir_name/linkedin_contacts.zip";
+  if( $zip->open($zip_file, ZipArchive::CREATE)!==TRUE){
+    exit("Cannot open <$zip_file>\n");
+  }   
+              
+  // Go through the array, creating a vcard for each contact and adding it to the zip file
+  for($i=0;$i<$array_size;$i++){
+    $c_id = $c_id_array[$i];
+    $sql = "SELECT * FROM Network WHERE c_id = $c_id";
+    $result = mysqli_query($conn, $sql);
+    $row = mysqli_fetch_array($result);
+    $vcard_content = make_vcard_content($row['f_name'], $row['l_name'], $row['l_url']);
+    $vcard = make_vcard($vcard_content, $row['f_name'], $row['l_name']);
+    $zip->addFile($vcard);
+  }          
+  $zip->close();
+  dl_card($zip_file);
+}   
+ 
 /////////////////////////////////////////////////////////////////////////////////////////
 // Creates a vCard for every contact of the user, places all of the vCards into
 // a zip file and then force downloads the zip file to the user
@@ -300,152 +442,8 @@ function make_one($c_id){
   $stmt = $db->prepare('update people set name = ? where id = ?');
   $stmt->bind_param('si',$name,$id);
   $stmt->execute();*/
-}
+}    
 
-/////////////////////////////////////////////////////////////////////////////////////////
-// Searches for an individual in the Network database
-// Takes a string  (either the first or last name of the contact) and the u_id of the 
-// user as the arguments. Does not sanitize or parameterize the data. Vulnerable.
-function find_contact($name, $c_of){
-  error_reporting(E_ALL);
-  ini_set('display_errors','On');
-  $conn = create_db_connection();
-  $sql = "SELECT * FROM Network WHERE (f_name = '$name' OR l_name = '$name') AND c_of = $c_of ORDER BY 2";
-  $result = mysqli_query($conn, $sql);
-  echo "<br><br>";
-  var_dump($result);
-  echo "<br><br>";
-  return $result;
-}
-
-////////////////////////////////////////////////////////////////////////////////////////
-// Renders the html to display the, search results, search dialogue, text field, and 
-// button. Takes a boolean showing whether or not a search has been performed, the 
-// results of that search (NULL if $has_searched is FALSE), and the u_id of the current 
-// user as the arguments.
-function render_search_div($has_searched, $result, $last_id){
-  echo '<div id="search_result_div">';
-  if($has_searched && $result->num_rows == 0){
-    echo '<p id="search_result_fail"><b>That contact was not found.</b><br> Be sure to capitalilze the first   letter of the name. If that did help, your contact may have set his or her profile to private or      there may have been an error entering the information into the database.<br>Please try again or you   can create a vCard from scratch.</p></div>';
-  }elseif($has_searched && $result->num_rows > 0){
-    echo '<p id="search_result_found">';
-    echo '<b>Found:</b><br>';
-    while( $row = mysqli_fetch_array($result)){
-      $f_name = $row['f_name'];
-      $l_name = $row['l_name'];
-      $c_id = $row['c_id'];
-      echo '<form action="one_vcard.php" method="POST" id="search_form">';
-      echo '<input type="hidden" name="contact_id" value="'.$c_id.'">';
-      echo $f_name.' '.$l_name.' <input type="submit" name="select_btn" value="Edit"> <input type="submit" name="select_btn" value="Download"><br></form>';
-    }    
-    echo '</p></div>';
-  }
-  echo '<div id="search_div">';
-  echo '<p id="search_expl">';
-  echo 'To search for a contact in the database, enter either the person\'s first or last name and click on Search. </p>';
-  echo '<p id="search_form_p">';
-  echo '<form action="one_vcard.php" method="POST" id="search_form">';
-  echo 'Contact Name: <input type="text" name="c_name"><br>';
-  echo '<input type="hidden" name="last_id" value="'.$last_id.'">';
-  echo '<input type="submit" id="get_one_search_btn" name="search_btn" value="Search">';
-  echo '</form></p></div>';
-}
-
-/////////////////////////////////////////////////////////////////////////////////////////
-// Creates the html for displaying all of the user's contacts in a list. Each item in the
-// list will have a check box for selecting it to be included in the zipped file that
-// will be created and force downloaded when submit is clicked.  Takes the user's id and
-// the query results as arguments.
-function render_multi_div($result, $last_id){
-    
-
-  $count = 0;
- // $array_size = $result->num_rows;
-  while($row = mysqli_fetch_array($result)){
-    // Set variables
-    $f_name = $row['f_name'];
-    $l_name = $row['l_name'];
-    $c_id = $row['c_id'];
-  
-    // Choose span background color
-    if($count % 2 == 0){
-      $color = 'lightgrey';
-    }else{
-      $color = 'white';
-    }
-
-    // Print list of contacts
-    echo '<span style="background-color:'.$color.';display:inline-block;width:300px">';
-    echo '<input type="checkbox" name="contact[]" value="'.$c_id.'">';
-    echo $f_name." ".$l_name."</span>";
- //   echo '<form action="edit_card.php" method="POST" id="multi_edit_btn">';
-//    echo '<input type="hidden" name="edit_id" value="'.$c_id.'">';
-    echo '<button onclick="window.location=href="https://mbourn.com/edit_contact.php?id='.$last_id.'" id="edit_btn">Edit</button><br>';
-//    echo '</form><br>';
-    $count++;
-  }
-
-            
-}
-
-/////////////////////////////////////////////////////////////////////////////////////////
-function edit_individ_contact($contact){
-
-}
-
-/////////////////////////////////////////////////////////////////////////////////////////
-// Creates and returns a connection to the local database
-function create_db_connection(){
-  error_reporting(E_ALL);
-  ini_set('display_errors','On');
-  $servername = "localhost";
-  $username = "from_web";
-  $password = 'Z!s2D#r4%';
-  $dbname = "490_db";
-                
-  // Create the connection 
-  $conn = new mysqli($servername, $username, $password, $dbname);
-  if( $conn->connect_error ){
-    die("Connection failed: " . $conn->connect_error);
-  }
-  return $conn;
-}
-
-/////////////////////////////////////////////////////////////////////////////////////////
-// Creates a set of vCards.  Takes an indexed array of c_ids as the argument
-function make_multi_set($c_id_array){
-
-  // Create db connection and variables
-  $conn = create_db_connection();
-  $array_size = count($_POST['contact']);
-
-  // Create directory for the vCards
-  $dir_name = md5(time());
-  $dir_path = "vCards/$dir_name/";
-  if( !mkdir($dir_path));{
-  }   
-
-  // Create the zip file
-  $zip = new ZipArchive();
-  $zip_file = "vCards/$dir_name/linkedin_contacts.zip";
-  if( $zip->open($zip_file, ZipArchive::CREATE)!==TRUE){
-    exit("Cannot open <$zip_file>\n");
-  }   
-              
-  // Go through the array, creating a vcard for each contact and adding it to the zip file
-  for($i=0;$i<$array_size;$i++){
-    $c_id = $c_id_array[$i];
-    $sql = "SELECT * FROM Network WHERE c_id = $c_id";
-    $result = mysqli_query($conn, $sql);
-    $row = mysqli_fetch_array($result);
-    $vcard_content = make_vcard_content($row['f_name'], $row['l_name'], $row['l_url']);
-    $vcard = make_vcard($vcard_content, $row['f_name'], $row['l_name']);
-    $zip->addFile($vcard);
-  }          
-  $zip->close();
-  dl_card($zip_file);
-}   
-       
 /////////////////////////////////////////////////////////////////////////////////////////
 // Creates the string used as the contents of the vCard
 // Takes the different fields as arguments
@@ -512,6 +510,41 @@ function dl_card($vcard){
   }else{
     echo "Couldn't find the vCard";
   }
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////
+// Count the number of contacts that have set their profiles to "private" 
+// and return that number
+function count_privates($last_id){
+  error_reporting(E_ALL);
+  ini_set('display_errors','On');
+  // Create the connection
+  $conn = create_db_connection();
+  $sql = "SELECT f_name FROM Network WHERE f_name = 'private' AND c_of = $last_id";     
+  $count=0;
+  $result = mysqli_query($conn, $sql);
+  if(mysqli_num_rows($result) > 0){
+    while($row = mysqli_fetch_assoc($result)){
+      $count+=1;
+    }
+  }
+  mysqli_close($conn);
+  return $count;
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////
+// Resets the session and redirects the user back to the index page
+function logout(){
+  session_start();
+  $_SESSION = array();
+  if (ini_get("session.use_cookies")){
+    $params = session_get_cookie_params();
+    setcookie(session_name(), '', time() -42000, $params["path"], 
+      $params["domain"], $params["secure"], $params["httponly"]);
+  }
+  session_destroy();
+  unset($_COOKIE['linkedin']);
+  setcookie('linkedin', "", time()-3600, "/", "mbour.com");
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////

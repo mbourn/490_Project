@@ -6,21 +6,17 @@
 
 // Runs the scripts to authenticate with LinkedIn, query the API, and load
 // the user and contact info into the database
-$info_array=start();
-$last_id=$info_array['last_id'];
-$errors=$info_array['errors'];
-
+  $info_array=start();
+  $last_id=$info_array['last_id'];
+  $errors=$info_array['errors'];
 
 ?>
 </head>
 <body>
 <header>
-  <section id="header_welcome">
-    <h1>LinkedIn Contact to vCard Generator</h1>
-  </section>
-  <section id="logout">
-    <button onclick="window.location=href='https://mbourn.com/?logout'">Logout</button>
-  </section>
+  <?php 
+    render_header(); 
+  ?>
 </header>
 <main>
 
