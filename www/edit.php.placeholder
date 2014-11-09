@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <?php 
+    require "cgi-bin/auth.php"; 
+    
+    // Get Vars
+    if( isset($_POST['c_id'])){
+      $c_id = $_POST['c_id'];
+    }else{
+      var_dump($_POST);
+      die('No contact ID passed by POST or GET');
+    }
+
+//$c_id=3666;
+
+    $conn = create_db_connection();
+    if( isset($_POST['update_c'])){
+      $f_name = $_POST['f_name'];
+      $l_name = $_POST['l_name'];
+      $email = $_POST['email'];
+      $phone1 = $_POST['phone1'];
+      $phone2 = $_POST['phone2'];
+      $addr = $_POST['addr'];
+      $twtr = $_POST['twtr'];
+      $i_m = $_POST['i_m'];
+      $pic_path = $_POST['pic_path'];
+      $sql_update = "UPDATE Network SET f_name='$f_name', l_name='$l_name', email='$email', 
+                                        phone1='$phone1', phone2='$phone2', addr='$addr', 
+                                        twtr='$twtr', i_m='$i_m', pic_path='$pic_path' 
+                                        WHERE c_id = $c_id";
+      $result = mysqli_query($conn, $sql_update);
+      if( $conn->error){
+        die($conn->error);
+      }
+      var_dump($result);
+      echo "<hr>Contact Updated";
+    }
+
+    $sql = "SELECT * FROM Network WHERE c_id = $c_id";
+    $result = mysqli_query($conn, $sql);
+    $data = mysqli_fetch_array($result);
+
+    if( $data['f_name']){
+      $f_name = $data['f_name'];
+    }
+    if( $data['l_name']){
+      $l_name = $data['l_name'];
+    }
+    if( $data['email']){
+      $email = $data['email'];
+    }else{
+      $email = NULL;
+    }
+    if( $data['phone1']){
+      $phone1 = $data['phone1'];
+    }else{
+      $phone1 = NULL;
+    }
+    if( $data['phone2']){
+      $phone2 = $data['phone2'];
+    }else{
+      $phone2 = NULL;
+    }
+    if( $data['addr']){
+      $addr = $data['addr'];
+    }else{
+      $addr = NULL;
+    }
+    if( $data['twtr']){
+      $twtr = $data['twtr'];
+    }else{
+      $twtr = NULL;
+    }
+    if( $data['i_m']){
+      $i_m = $data['i_m'];
+    }else{
+      $i_m = NULL;
+    }
+    if( $data['pic_path']){
+      $pic_path = $data['pic_path'];
+    }else{
+      $pic_path = NULL;
+    }
+    if( $data['l_url']){
+      $l_url = $data['l_url'];
+    }else{
+      $l_url = NULL;
+    }
+      
+ ?>
+  
+</head>
+<body>
+<header>
+  <?php render_header();?>
+  
+  <script type="text/javascript">
+    function changeValue(id){
+      // Setup the variables
+      var ids = ["f_name", "l_name", "email", "phone1",
+                 "phone2", "addr", "twtr", "i_m", "pic_path"];
+      var prefix = "hidden_"
+      // Loop through the array. If the value of the text box is null, skip it.
+      // If there is a value, change the hidden value. Submit form when finished.
+      for(i = 0; i < ids.length; i++){
+        var  input_value = document.getElementById(ids[i]).value;
+        if( input_value ){
+          var hidden_id = prefix.concat(ids[i]);
+          document.getElementById(hidden_id).value=input_value;
+        }
+        document.getElementById("edit_form").submit();
+      }
+
+    }
+    </script>
+
+</header>
+<main>
+  <span id="edit_title">
+    <h4>Edit or Create a vCard</h4>
+  </span>
+  <span id="edit_form_span">
+   <form action="https://mbourn.com/edit.php" method="POST" id="edit_form"><br>
+   <table id="edit_table">
+     <tr>
+     <td>First name:   </td>
+     <td> <input type="text" placeholder="<?php echo $f_name ;?>" name="f_name" id="f_name">
+         <input type="hidden" id="hidden_f_name" name="f_name" value="<?php echo $f_name;?>"></td>
+    </tr><tr>
+     <td>Last name:    </td>
+     <td><input type="text" placeholder="<?php echo $l_name ;?>" name="l_name" id="l_name">
+         <input type="hidden" id="hidden_l_name" name="l_name" value="<?php echo $l_name;?>"></td>
+    </tr><tr>
+     <td>Email address:</td>
+     <td> <input type="text" placeholder="<?php echo $email ;?>" name="email" id="email">
+          <input type="hidden" id="hidden_email" name="email" value="<?php echo $email;?>"></td>
+    </tr><tr>
+     <td>Phone number: </td>
+     <td> <input type="text" placeholder="<?php echo $phone1 ;?>" name="phone1" id="phone1">
+          <input type="hidden" id="hidden_phone1" name="phone1" value="<?php echo $phone1;?>"></td>
+    </tr><tr>
+     <td>Phone number: </td>
+     <td> <input type="text" placeholder="<?php echo $phone2 ;?>" name="phone2" id="phone2">
+          <input type="hidden" id="hidden_phone2" name="phone2" value="<?php echo $phone2;?>"></td>
+    </tr><tr>
+     <td>Address:      </td>
+     <td> <input type="text" placeholder="<?php echo $addr ;?>" name="addr" id="addr">
+          <input type="hidden" id="hidden_addr" name="addr" value="<?php echo $addr;?>"></td>
+    </tr><tr>
+     <td>Twitter:      </td>
+     <td> <input type="text" placeholder="<?php echo $twtr ;?>" name="twtr" id="twtr">
+          <input type="hidden" id="hidden_twtr" name="twtr" value="<?php echo $twtr;?>"></td>
+    </tr><tr>
+     <td>IM:           </td>
+     <td> <input type="text" placeholder="<?php echo $i_m ;?>" name="i_m" id="i_m">
+          <input type="hidden" id="hidden_i_m" name="i_m" value="<?php echo $i_m;?>"></td>
+    </tr><tr>
+     <td>Picture URL:  </td>
+     <td> <input type="text" placeholder="<?php echo $pic_path ;?>" name="pic_path" id="pic_path">
+          <input type="hidden" id="hidden_pic_path" name="pic_path" value="<?php echo $pic_path;?>"></td>
+    </tr><tr>
+     <td><input type="hidden" name="c_id" value="<?php echo $c_id; ?>"></td>
+     <td><button id="edit_form_btn" onclick="changeValue()">Update</button></td>
+    </tr>
+    </table>
+    </form>
+  </span>
+
+
+
+</main>
+</body>
+</html>

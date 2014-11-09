@@ -2,8 +2,8 @@
 <head>
 <?php 
   require "cgi-bin/auth.php"; 
-  error_reporting(E_ALL);
-  ini_set('display_errors','On');
+  //error_reporting(E_ALL);
+  //ini_set('display_errors','On');
 
   //var_dump($_POST);
 
@@ -38,8 +38,9 @@
 
     // If the user clicked on Download, perform download functions
     case "Download":
-      if( isset($_POST['contact_id'])){
-        $cid = $_POST['contact_id'];
+      var_dump($_POST);
+      if( isset($_POST['c_id'])){
+        $cid = $_POST['c_id'];
       }else{
         echo "Contact id not in POST";
       } 
@@ -62,6 +63,7 @@
 <html>
 <body>
 <?php 
+  var_dump($_POST);
   $conn = create_db_connection();
   $sql = "SELECT f_name, l_name, c_id FROM Network WHERE c_of = $last_id ORDER BY 2 ASC";
   $result = mysqli_query($conn, $sql);
@@ -75,7 +77,8 @@
     To download the vCard, click on Download.  To edit the vCard contents
     before downloading, click on Edit.
   </p>
-  <form action="one_vcard.php" method="POST" id="select_form">
+  <form action="https://<?php echo $_SERVER['SERVER_NAME']; ?>/one_vcard.php" method="POST" id="select_form">
+  <input type="hidden" name="return_addr" value="https://<?php echo $_SERVER['SERVER_NAME']; ?>/one_vcard.php?id=<?php echo $last_id ?>">
     <input type="hidden" name="last_id" value="<?php echo $last_id; ?>">
     <p id="select_p">
       <select name="c_id">

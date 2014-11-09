@@ -2,7 +2,9 @@
 <html>
 <head>
 <link rel='stylesheet' type='text/css' href='contents.css'>
-<?php include "cgi-bin/auth.php";
+<?php require "cgi-bin/auth.php";
+error_reporting(E_ALL);
+ini_set('display_errors','On');
 /*
   function delete_db(){
 echo "Deleting";

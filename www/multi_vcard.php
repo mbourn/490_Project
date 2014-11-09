@@ -20,7 +20,7 @@
 
     if( isset($_POST['multi_submit'])){
       if( !isset($_POST['contact'])){
-        echo 'You must select at least one contact<br>';
+        echo '<p id="multi_error">You must select at least one contact</p>';
       }else{
         make_multi_set($_POST['contact']);
       }

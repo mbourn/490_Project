@@ -3,8 +3,8 @@
 /////////////////////////////////////////////////////////////////////////////////////////
 //Function to kick off the authentication and authorization process
 function start(){
-  error_reporting(E_ALL);
-  ini_set('display_errors','On');
+  //error_reporting(E_ALL);
+  //ini_set('display_errors','On');
   // Change these
   define('API_KEY',      '75p5ptqc5060jj'                          );
   define('API_SECRET',   'GJIsoTietQCigBWb'                        );
@@ -60,8 +60,8 @@ function start(){
 /////////////////////////////////////////////////////////////////////////////////////////
 //  Function to retrieve an authorization code
 function getAuthorizationCode() {
-  error_reporting(E_ALL);
-  ini_set('display_errors','On');
+  //error_reporting(E_ALL);
+  //ini_set('display_errors','On');
     $params = array(
         'response_type' => 'code',
         'client_id' => API_KEY,
@@ -84,8 +84,8 @@ function getAuthorizationCode() {
 /////////////////////////////////////////////////////////////////////////////////////////
 // Function to get an access token for using the API     
 function getAccessToken() {
-  error_reporting(E_ALL);
-  ini_set('display_errors','On');
+  //error_reporting(E_ALL);
+  //ini_set('display_errors','On');
     $params = array(
         'grant_type' => 'authorization_code',
         'client_id' => API_KEY,
@@ -121,8 +121,8 @@ function getAccessToken() {
  
  // Function to query the API 
 function fetch($method, $resource, $body = '') {
-  error_reporting(E_ALL);
-  ini_set('display_errors','On');
+  //error_reporting(E_ALL);
+  //ini_set('display_errors','On');
  
     $opts = array(
         'http'=>array(
@@ -151,8 +151,8 @@ function fetch($method, $resource, $body = '') {
 // This function takes the user php object returned from LinkedIn and adds
 // the relevent values to the database 
 function load_user($user){ 
-  error_reporting(E_ALL);
-  ini_set('display_errors','On');
+  //error_reporting(E_ALL);
+  //ini_set('display_errors','On');
   // Create the connection
   $conn = create_db_connection();
   
@@ -175,8 +175,8 @@ function load_user($user){
 // integer that is used to add the foreign key that references the user
 // whose contacts these are.
 function load_network( $network, $last_id ){
-  error_reporting(E_ALL);
-  ini_set('display_errors','On');
+  //error_reporting(E_ALL);
+  //ini_set('display_errors','On');
   // Create the database connection
   $conn = create_db_connection();
   // Add a row to the Network table for each contact in the network object
@@ -219,11 +219,9 @@ function render_header(){
 function render_search_div($has_searched, $result, $last_id){
   echo '<div id="search_result_div">';
   if($has_searched && $result->num_rows == 0){
-    echo '<p id="search_result_fail"><b>That contact was not found.</b><br> Be sure to
-           capitalilze the first letter of the name. If that did help, your contact may 
+    echo '<p id="search_result_fail"><b>That contact was not found.</b><br> Your contact may 
            have set his or her profile to private or there may have been an error entering 
-           the information into the database.<br>Please try again or you   can create a 
-           vCard from scratch.</p></div>';
+           the information into the database.<br>Please try again.</p></div>';
   }elseif($has_searched && $result->num_rows > 0){
     echo '<p id="search_result_found">';
     echo '<b>Found:</b><br>';
@@ -232,6 +230,7 @@ function render_search_div($has_searched, $result, $last_id){
       $l_name = $row['l_name'];
       $c_id = $row['c_id'];
       echo '<form action="one_vcard.php" method="POST" id="search_form">';
+      echo '<input type="hidden" name="return_addr" value="https://'.$_SERVER['SERVER_NAME'].'/one_vcard.php?id='.$last_id.'">';
       echo '<input type="hidden" name="c_id" value="'.$c_id.'">';
       echo $f_name.' '.$l_name.' <input type="submit" name="select_btn" value="Edit"> <input type="submit" name="select_btn" value="Download"><br></form>';
     }    
@@ -278,6 +277,8 @@ function render_multi_div($result, $last_id){
     echo '<input type="checkbox" name="contact[]" value="'.$c_id.'">';
     echo $f_name." ".$l_name."</span></td>";
     echo '<td><form action="edit.php" method="POST" id="multi_edit_form">';
+    echo '<input type="hidden" name="last_id" value="'.$last_id.'">';
+    echo '<input type="hidden" name="return_addr" value="https://'.$_SERVER['SERVER_NAME'].'/'.'multi_vcard.php">';
     echo '<input type="hidden" name="c_id" value="'.$c_id.'">';
     echo '<input type="submit" name="edit_btn" value="Edit"></form></td></tr>';
     $count++;
@@ -290,14 +291,11 @@ function render_multi_div($result, $last_id){
 // Takes a string  (either the first or last name of the contact) and the u_id of the 
 // user as the arguments. Does not sanitize or parameterize the data. Vulnerable.
 function find_contact($name, $c_of){
-  error_reporting(E_ALL);
-  ini_set('display_errors','On');
+  //error_reporting(E_ALL);
+  //ini_set('display_errors','On');
   $conn = create_db_connection();
   $sql = "SELECT * FROM Network WHERE (f_name = '$name' OR l_name = '$name') AND c_of = $c_of ORDER BY 2";
   $result = mysqli_query($conn, $sql);
-  echo "<br><br>";
-  var_dump($result);
-  echo "<br><br>";
   return $result;
 }
 
@@ -309,8 +307,8 @@ function edit_individ_contact($contact){
 /////////////////////////////////////////////////////////////////////////////////////////
 // Creates and returns a connection to the local database
 function create_db_connection(){
-  error_reporting(E_ALL);
-  ini_set('display_errors','On');
+  //error_reporting(E_ALL);
+  //ini_set('display_errors','On');
   $servername = "localhost";
   $username = "from_web";
   $password = 'Z!s2D#r4%';
@@ -363,8 +361,8 @@ function make_multi_set($c_id_array){
 // Creates a vCard for every contact of the user, places all of the vCards into
 // a zip file and then force downloads the zip file to the user
 function make_all($last_id){
-  error_reporting(E_ALL);
-  ini_set('display_errors','On');
+  //error_reporting(E_ALL);
+  //ini_set('display_errors','On');
   // Create the connection
   $conn = create_db_connection();
   
@@ -450,8 +448,8 @@ function make_one($c_id){
 // Will be modified in the future to take an array when program is expanded to include
 // more fields
 function make_vcard_content($f_name, $l_name, $l_url){
-  error_reporting(E_ALL);
-  ini_set('display_errors','On');
+  //error_reporting(E_ALL);
+  //ini_set('display_errors','On');
   $vcard_content = "BEGIN:VCARD\r";
   $vcard_content .= "VERSION:3.0\r";
   $vcard_content .= "N:".$l_name.";".$f_name.";;\r";
@@ -468,8 +466,8 @@ function make_vcard_content($f_name, $l_name, $l_url){
 // The names are used to generate the file name.  If I were more clever I'd just parse
 // the contents string but that sounded like a lot of work.
 function make_vcard($vcard_content, $f_name, $l_name){
-  error_reporting(E_ALL);
-  ini_set('display_errors','On');
+  //error_reporting(E_ALL);
+  //ini_set('display_errors','On');
   
   $card_name = $f_name."_".$l_name;
   $card_name = strtr($card_name, " ", "_");
@@ -491,8 +489,8 @@ function make_vcard($vcard_content, $f_name, $l_name){
 //  Force downloads a vCard to the user
 //  Takes a string containing the path to the file to be downloaded as an argument
 function dl_card($vcard){
-  error_reporting(E_ALL);
-  ini_set('display_errors','On');
+  //error_reporting(E_ALL);
+  //ini_set('display_errors','On');
 
   // Forces download of file
   echo $vcard;
@@ -516,8 +514,8 @@ function dl_card($vcard){
 // Count the number of contacts that have set their profiles to "private" 
 // and return that number
 function count_privates($last_id){
-  error_reporting(E_ALL);
-  ini_set('display_errors','On');
+  //error_reporting(E_ALL);
+  //ini_set('display_errors','On');
   // Create the connection
   $conn = create_db_connection();
   $sql = "SELECT f_name FROM Network WHERE f_name = 'private' AND c_of = $last_id";     
@@ -562,8 +560,8 @@ function delete_files(){
 // This deletes the entire contents of both tables in the database and resets all
 // primary keys to 0
 function delete_db(){
-  error_reporting(E_ALL);
-  ini_set('display_errors','On');
+  //error_reporting(E_ALL);
+  //ini_set('display_errors','On');
   // Create the connection
   $conn = create_db_connection();
   // Delete all rows from the Network table
