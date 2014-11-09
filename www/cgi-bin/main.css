@@ -1,0 +1,11 @@
+div {
+  border:         1px solid black;
+  border-radius:  10px;
+  background:     linear-gradient(grey, white);
+
+}
+
+#index_main_div {
+  height: 800px;
+
+}

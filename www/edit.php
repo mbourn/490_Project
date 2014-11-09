@@ -90,13 +90,14 @@
     }
       
  ?>
-  
+ <link rel="stylesheet" href="main.css"> 
 </head>
 <body>
 <header>
   <?php render_header();?>
 </header>
 <main>
+<div id="edit_div">
   <span id="edit_title">
     <h4>Edit or Create a vCard</h4>
   </span>
@@ -147,9 +148,12 @@
       </table>
     </form>
   </span>
-
+</div>
 
 
 </main>
+<footer>
+<?php render_footer(); ?>
+</footer>
 </body>
 </html>

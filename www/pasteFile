@@ -1,15 +1,14 @@
-
+<?php include "../cgi-bin/auth.php"; ?>
 <!DOCTYPE html>
 <html>
 <head>
 <?php 
-  require "cgi-bin/auth.php";
-  //error_reporting(E_ALL);
-  //ini_set('display_errors','On');
-  $last_id=$_GET['last_id'];
-  $errors=$_GET['errors'];
+// Runs the scripts to authenticate with LinkedIn, query the API, and load
+// the user and contact info into the database
+  $info_array=start();
+  $last_id=$info_array['last_id'];
+  $errors=$info_array['errors'];
 ?>
-  <link rel="stylesheet" href="main.css">
 </head>
 <body>
 <header>
@@ -63,8 +62,6 @@
       <?php echo '<button onclick="window.location=href=\'https://mbourn.com/multi_vcard.php?id='.$last_id.'&action=all\'">Continue</button>'; ?>
   </div>
 </main>
-<footer>
-<?php render_footer(); ?>
-</footer>
+<footer></footer>
 </body>
 </html>

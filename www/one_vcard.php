@@ -38,7 +38,6 @@
 
     // If the user clicked on Download, perform download functions
     case "Download":
-      var_dump($_POST);
       if( isset($_POST['c_id'])){
         $cid = $_POST['c_id'];
       }else{
@@ -59,11 +58,11 @@
     break;
   }
 ?>
+<link rel="stylesheet" href="main.css">
 </head>
 <html>
 <body>
 <?php 
-  var_dump($_POST);
   $conn = create_db_connection();
   $sql = "SELECT f_name, l_name, c_id FROM Network WHERE c_of = $last_id ORDER BY 2 ASC";
   $result = mysqli_query($conn, $sql);
@@ -100,6 +99,8 @@
 </div>
 
 <?php render_search_div(isset($_POST['search_btn']), $search_result, $last_id); ?>
-
+<footer>
+<?php render_footer(); ?>
+</footer>
 </body>
 </html>

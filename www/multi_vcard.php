@@ -31,6 +31,7 @@
     $result = mysqli_query($conn, $sql);
 
   ?>
+<link rel="stylesheet" href="main.css">
 </head>
 <body>
 <header>
@@ -50,5 +51,8 @@
 
 
 </main>
+<footer>
+<?php render_footer(); ?>
+</footer>
 </body>
 </html>

@@ -212,6 +212,16 @@ function render_header(){
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////
+// Renders the page footer
+function render_footer(){
+  echo '<div id="footer_div">';
+  echo '<span id="footer_span">';
+  echo "<p>Copyright &copy; 2013-" . date("Y") . " M. Bourn</p>";
+  echo "</span></div>";
+}
+
+
+////////////////////////////////////////////////////////////////////////////////////////
 // Renders the html to display the, search results, search dialogue, text field, and 
 // button. Takes a boolean showing whether or not a search has been performed, the 
 // results of that search (NULL if $has_searched is FALSE), and the u_id of the current 
