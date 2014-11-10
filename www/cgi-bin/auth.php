@@ -288,7 +288,7 @@ function render_multi_div($result, $last_id){
     echo $f_name." ".$l_name."</span></td>";
     echo '<td><form action="edit.php" method="POST" id="multi_edit_form">';
     echo '<input type="hidden" name="last_id" value="'.$last_id.'">';
-    echo '<input type="hidden" name="return_addr" value="https://'.$_SERVER['SERVER_NAME'].'/'.'multi_vcard.php">';
+    echo '<input type="hidden" name="return_addr" value="https://'.$_SERVER['SERVER_NAME'].'/'.'multi_vcard.php?id='.$last_id.'">';
     echo '<input type="hidden" name="c_id" value="'.$c_id.'">';
     echo '<input type="submit" name="edit_btn" value="Edit"></form></td></tr>';
     $count++;

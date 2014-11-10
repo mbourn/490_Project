@@ -14,8 +14,9 @@
       }
     }elseif( isset($_POST['last_id'])){
       $last_id = $_POST['last_id'];
+      echo $last_id;
     }else{
-      echo "ERROR: User Id not passed<br>";
+      die("ERROR: User Id not passed<br>");
     }
 
     if( isset($_POST['multi_submit'])){
