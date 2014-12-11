@@ -99,7 +99,7 @@
 <main>
 <div id="edit_div">
   <span id="edit_title">
-    <h4>Edit or Create a vCard</h4>
+  <h4>Edit <section style="color: #007BB6; font-size: 2em;"><?php echo $f_name." ".$l_name."'s";?></section> vCard</h4>
   </span>
   <span id="edit_form_span">
   <form action="edit.php" method="POST" id="edit_form"><br>
@@ -143,7 +143,7 @@
       </tr><tr>
         <td><input type="hidden" name="return_addr" value="<?php echo $return_addr; ?>"></td>
         <td><input type="hidden" name="c_id" value="<?php echo $c_id; ?>"></td>
-        <td><input type="submit" name="update_c" value="Update"></td>
+        <td><input class="btn" type="submit" name="update_c" value="Update"></td>
       </tr>
       </table>
     </form>

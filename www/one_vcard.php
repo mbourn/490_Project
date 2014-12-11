@@ -71,15 +71,15 @@
 <header>
   <?php render_header(); ?>
 </header>
+<div id="search">
 <div id="get_one_select_div">
-  <p id="select_expl_p">Please select the contact from the dropdown box.  
-    To download the vCard, click on Download.  To edit the vCard contents
-    before downloading, click on Edit.
-  </p>
+  <div id="select_expl" style="text-align: center;">
+    Please select the contact from the dropdown box to either edit or download.  
+  </div>
   <form action="https://<?php echo $_SERVER['SERVER_NAME']; ?>/one_vcard.php" method="POST" id="select_form">
   <input type="hidden" name="return_addr" value="https://<?php echo $_SERVER['SERVER_NAME']; ?>/one_vcard.php?id=<?php echo $last_id ?>">
     <input type="hidden" name="last_id" value="<?php echo $last_id; ?>">
-    <p id="select_p">
+    <div id="select_p">
       <select name="c_id">
       <?php 
         while($row = mysqli_fetch_array($result)){
@@ -90,17 +90,18 @@
         }
       ?>
       </select>
-    </p>
-    <p id="select_buttons_p">
-      <input type="submit" name="select_btn" value="Edit" id="select_edit">
-      <input type="submit" name="select_btn" value="Download" id="select_dl">
-    </p>
+    </div>
+    <div id="select_buttons_p">
+      <input class="btn" type="submit" name="select_btn" value="Edit" id="select_edit">
+      <input class="btn" type="submit" name="select_btn" value="Download" id="select_dl">
+    </div>
   </form>
 </div>
 
 <?php render_search_div(isset($_POST['search_btn']), $search_result, $last_id); ?>
+</div></div></div>
+</body>
 <footer>
 <?php render_footer(); ?>
 </footer>
-</body>
 </html>

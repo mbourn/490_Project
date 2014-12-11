@@ -200,24 +200,21 @@ function load_network( $network, $last_id ){
 ////////////////////////////////////////////////////////////////////////////////////////
 // Renders the page header
 function render_header(){
-  echo '<div id="header_div>';
-  echo '<span id="title" onclick="window.location=href=\'';
-  echo 'https://mbourn.com/?action=logout\'"><h2>LinkedIn Contact vCard Generator</h2></span>';
-
-  echo '<span id="logout_btn">';
-  echo '<button onclick="window.location=href\'https://mbourn.com/?action=logout\'">';
-  echo 'Logout</button></span>';
-
-  echo '</div>';
+  echo '<div id="header-div"><div id="header_cont">';
+  echo '<div id="header_img"><img src="images/logo.png" height=150px>';
+  if( $_GET['last_id'] ){
+    echo '<br><button id="logout_btn" onclick="window.location=';
+    echo 'href=\'https://mbourn.com/?action=logout\'">Logout</button>';
+  }
+  echo '</div></div></div>';
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////
 // Renders the page footer
 function render_footer(){
   echo '<div id="footer_div">';
-  echo '<span id="footer_span">';
-  echo "<p>Copyright &copy; 2013-" . date("Y") . " M. Bourn</p>";
-  echo "</span></div>";
+  echo "<br>Copyright &copy; 2013-" . date("Y") . " M. Bourn";
+  echo "</div>";
 }
 
 
@@ -227,13 +224,23 @@ function render_footer(){
 // results of that search (NULL if $has_searched is FALSE), and the u_id of the current 
 // user as the arguments.
 function render_search_div($has_searched, $result, $last_id){
+  echo '<div id="search_div">';
+  echo '<div id="search_expl">';
+  echo 'To search for a contact in the database, enter either the person\'s first or last name and click on Search.';
+  echo '</div>';
+  echo '<div id="search_form_p">';
+  echo '<form action="one_vcard.php" method="POST" id="search_form">';
+  echo 'Contact Name: <input type="text" name="c_name"><br>';
+  echo '<input type="hidden" name="last_id" value="'.$last_id.'">';
+  echo '<input class="btn" type="submit" id="get_one_search_btn" name="search_btn" value="Search">';
+  echo '</form></div>';
   echo '<div id="search_result_div">';
   if($has_searched && $result->num_rows == 0){
-    echo '<p id="search_result_fail"><b>That contact was not found.</b><br> Your contact may 
+    echo '<div id="search_result_fail"><b>That contact was not found.</b><br> Your contact may 
            have set his or her profile to private or there may have been an error entering 
-           the information into the database.<br>Please try again.</p></div>';
+           the information into the database.<br>Please try again.</div></div>';
   }elseif($has_searched && $result->num_rows > 0){
-    echo '<p id="search_result_found">';
+    echo '<div id="search_result_found">';
     echo '<b>Found:</b><br>';
     while( $row = mysqli_fetch_array($result)){
       $f_name = $row['f_name'];
@@ -242,19 +249,10 @@ function render_search_div($has_searched, $result, $last_id){
       echo '<form action="one_vcard.php" method="POST" id="search_form">';
       echo '<input type="hidden" name="return_addr" value="https://'.$_SERVER['SERVER_NAME'].'/one_vcard.php?id='.$last_id.'">';
       echo '<input type="hidden" name="c_id" value="'.$c_id.'">';
-      echo $f_name.' '.$l_name.' <input type="submit" name="select_btn" value="Edit"> <input type="submit" name="select_btn" value="Download"><br></form>';
+      echo $f_name.' '.$l_name.' <input class="btn" type="submit" name="select_btn" value="Edit"> <input class="btn" type="submit" name="select_btn" value="Download"><br></form>';
     }    
-    echo '</p></div>';
+    echo '</div></div>';
   }
-  echo '<div id="search_div">';
-  echo '<p id="search_expl">';
-  echo 'To search for a contact in the database, enter either the person\'s first or last name and click on Search. </p>';
-  echo '<p id="search_form_p">';
-  echo '<form action="one_vcard.php" method="POST" id="search_form">';
-  echo 'Contact Name: <input type="text" name="c_name"><br>';
-  echo '<input type="hidden" name="last_id" value="'.$last_id.'">';
-  echo '<input type="submit" id="get_one_search_btn" name="search_btn" value="Search">';
-  echo '</form></p></div>';
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////
@@ -266,6 +264,8 @@ function render_multi_div($result, $last_id){
     
 
   $count = 0;
+  $color_ctr = 0;
+  $color = "lightgrey";
   // $array_size = $result->num_rows;
   echo '<table id="multi_table">';
   while($row = mysqli_fetch_array($result)){
@@ -275,14 +275,19 @@ function render_multi_div($result, $last_id){
     $c_id = $row['c_id'];
   
     // Choose span background color
-    if($count % 2 == 0){
-      $color = 'lightgrey';
-    }else{
-      $color = 'white';
+    if($color_ctr > 1){
+      if($color == "lightgrey"){
+        $color = 'white';
+      }else{
+        $color = 'lightgrey';
+      }
+      $color_ctr = 0;
     }
 
     // Print list of contacts
-    echo '<tr>';
+    if( $count % 2 == 0){
+      echo '<tr>';
+    }
     echo '<td><span style="background-color:'.$color.';display:inline-block;width:300px">';
     echo '<input type="checkbox" name="contact[]" value="'.$c_id.'">';
     echo $f_name." ".$l_name."</span></td>";
@@ -290,10 +295,13 @@ function render_multi_div($result, $last_id){
     echo '<input type="hidden" name="last_id" value="'.$last_id.'">';
     echo '<input type="hidden" name="return_addr" value="https://'.$_SERVER['SERVER_NAME'].'/'.'multi_vcard.php?id='.$last_id.'">';
     echo '<input type="hidden" name="c_id" value="'.$c_id.'">';
-    echo '<input type="submit" name="edit_btn" value="Edit"></form></td></tr>';
+    echo '<input class="btn" type="submit" name="edit_btn" value="Edit"></form></td>';
+    if( $count % 2 != 0 ){
+      echo '</tr>';
+    }
     $count++;
+    $color_ctr++;
   }
-  echo '</table>';  
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////

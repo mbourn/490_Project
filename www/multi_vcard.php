@@ -4,8 +4,8 @@
   <?php 
     require "cgi-bin/auth.php";
 
-      error_reporting(E_ALL);
-      ini_set('display_errors','On');
+      //error_reporting(E_ALL);
+      //ini_set('display_errors','On');
 
     if( isset($_GET['id'])){
       $last_id = $_GET['id'];
@@ -39,15 +39,18 @@
   <?php render_header(); ?>
 </header>
 <main>
+<div id="multi_div">
 <div id="multi_div_expl">
   Select contacts from the list below.  When you are happy with the set of contacts, click on Create to create and download a zip file containing all of those contacts' vCards.  Additionally, click on Edit to manually change any contact's information.
 </div>
-<div id="multi_div">
   <form action="multi_vcard.php" method="POST" id="multi_form">
     <?php render_multi_div($result, $last_id); ?>
-    <input type="hidden" name="last_id" value="<?php echo $last_id; ?>">
-    <input type="submit" name="multi_submit" value="Create">
+    <td colspan=4><div id="multi_cnt">
+      <input type="hidden" name="last_id" value="<?php echo $last_id; ?>">
+      <input id="multi_sub_btn" class="btn" type="submit" name="multi_submit" value="Create">
+    </div></td>
   </form>
+  </table>
 </div>
 
 

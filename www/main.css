@@ -1,8 +1,255 @@
 div {
-  border:         1px solid black;
-  border-radius:  10px;
-  background:     linear-gradient(grey, white);
+  /*border:           1px solid black;
+  border-radius:    10px;*/
+  background:       lightgrey;
+  padding:          10px;
+  font-family:      Verdana, Geneva, sans-serif;
+}
+
+button{
+  background-color: #007BB6;
+  color:            white;
+  border-radius:    8px;
 
 
+}
+
+.btn{
+  color:    white;
+  border-radius:    8px;
+  background-color: #007BB6;
+
+}
+.title2{
+  font-size:    1.5em;
+  font-weight:  bold;
+  padding:      0px;
+  text-align:   center;
+
+}
+
+.opt_cont{
+  padding:      0px;
+  width:        30%;
+  float:        left;
+  height:       150px;
+  text-align:   center;
+
+}
+
+#header-div{
+  width:          100%;
+  height:         200px;
+  padding:        0px;
+  margin-left:    auto;
+  margin-right:   auto;
+  background:   linear-gradient(grey, lightgrey);
+  z-index:        1;
+
+}
+
+#header_cont{
+  width:    50%;
+  height:   175px;
+  margin-left:    auto;
+  margin-right:   auto;
+  background:   linear-gradient(grey, lightgrey);
+  z-index:        2;
+}
+
+#header_img{
+  width:          100px;
+
+}
+#footer_div{
+  width:          100%;
+  height:         75px;
+  padding:        0px;
+  border:         0px;
+  border-radius:  0px;
+  text-align:     center;
+  background:   linear-gradient(lightgrey, grey);
+  clear:          both;
+
+}
+
+#main{
+  height:   600px;
+  width:    100%;
+  padding:  0px;
+
+}
+
+
+#login_btn{
+  width:      100px;
+  font-size:  1.5em;
+
+}
+
+#login_btn_div{
+  width:        100px;
+  margin-left:  auto;
+  margin-right: auto;
+
+}
+
+#get_cont{
+  padding:        0px;
+  width:          100%;
+  height:         151px;
+
+}
+
+#get_one_div{
+  margin-left:    5%;
+
+}
+
+
+#priv_er_cont{
+  border-top:     1px solid;
+  border-bottom:  1px solid;
+  padding:    0px;
+  width:      100%;
+  height:     200px;
+
+}
+
+#privates_div{
+  float:        right;
+  margin-right: 10%;
+  width:        320px;
+
+}
+
+#priv_title{
+  
+  font-size:    2em;
+  font-weight:  bold;
+  padding:      0px;
+  text-align:   center;
+
+}
+
+#priv_res{
+  font-size:    5em;
+  font-weight:  bold;
+  color:        #007BB6;
+  padding:      0px;
+  text-align:   center;
+}
+
+#priv_expl{
+  padding:      0px;
+  text-align:   center;
+
+
+}
+
+#errors_div{
+  margin-left: 10%;
+  width:       300px;
+}
+
+#er_title{
+  font-size:    2em;
+  font-weight:  bold;
+  padding:      0px;
+  text-align:   center;
+
+}
+
+#er_res{
+  font-size:    5em;
+  font-weight:  bold;
+  color:        #007BB6;
+  padding:      0px;
+  text-align:   center;
+
+}
+
+#er_expl{
+
+  padding:      0px;
+  text-align:   center;
+  
+}
+
+
+
+#get_one_div{
+
+}
+
+
+#get_one_select_div{
+  width:      100%;
+  height:     100%;
+  padding:    0px;
+  text-align: center;
+
+}
+
+#search{
+  width:      100%;
+  padding:    0px;
+  display:    table;
+  text-align: center;
+}
+
+#search_div{
+  width:      50%;
+  height:     100%;
+  padding:    0px;
+  display:    table-cell;
+
+}
+
+#search_result_div{
+  padding:    0px;
+
+}
+
+#multi_div_expl{
+  width:      80%;
+  text-align: center;
+  margin-left:  auto;
+  margin-right: auto;
+}
+
+
+#multi_div{
+  padding:      0px;
+  width:        100%;
+
+}
+
+#multi_table{
+  width:        80%;
+  margin-left:  auto;
+  margin-right: auto;
+
+}
+
+#multi_cnt{
+  text-align: center;
+
+}
+
+#multi_sub_btn{
+  width:      100px;
+  font-size:  1.25em;
+
+}
+
+
+#test{
+  width:      50px;
+  height:     50px;
+  background: black;
+
+  margin-left:  auto;
+  margin-right: auto;
 
 }
